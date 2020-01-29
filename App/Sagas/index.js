@@ -1,14 +1,12 @@
 import { takeLatest, all } from 'redux-saga/effects'
 
 import { AuthTypes } from '../Stores/Auth/Actions'
-import { DealsTypes } from '../Stores/Deals/Actions'
-import { VendorTypes } from '../Stores/Vendor/Actions'
-// import { VideoTypes } from '../Stores/Video/Actions'
 
-// import { startup } from './StartupSaga'
+
+
+
 import { createUser } from './AuthSaga'
-import { getDeals } from './DealsSaga'
-import {getVendors} from './VendorSaga';
+
 
 
 
@@ -20,13 +18,6 @@ export default function* root() {
     // Run the startup saga when the application starts
     takeLatest(AuthTypes.CREATE_USER_REQUEST, createUser),
 
-    takeLatest(VendorTypes.GET_VENDORS_REQUEST, getVendors),
-
-    takeLatest(DealsTypes.GET_DEALS_REQUEST, getDeals),
-
-    // takeLatest(VideoTypes.GET_VIDEOS_REQUEST, getVideos),
-
-    // takeLatest(VideoTypes.SHOW_DETAILS_REQUEST, showDetails),
   
 
     

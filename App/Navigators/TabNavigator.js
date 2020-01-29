@@ -2,11 +2,11 @@ import React from 'react';
 
 import { createBottomTabNavigator } from 'react-navigation-tabs'; // Version can be specified in package.json
 
-import { profileToEditProfileStack } from '../StackNavigators/profileToEditProfileStack';
-import { marketToProductDetailsOrChatOrCommentsStack } from '../StackNavigators/marketToProductDetailsOrChatOrCommentsStack';
-import { multipleAddButtonToMultiplePictureCameraToCreateItemStack } from '../StackNavigators/createItemToPictureCameraStack';
-import { wishListToProductDetailsOrChatOrCommentsStack } from '../StackNavigators/wishListToProductDetailsOrChatOrCommentsStack';
-import { ChatsToCustomChatStack } from '../StackNavigators/chatsToCustomChatStack';
+import { ProfileToEditProfileStack } from './StackNavigators/ProfileToEditProfileStack';
+import { MarketToProductDetailsOrChatOrCommentsStack } from './StackNavigators/MarketToProductDetailsOrChatOrCommentsStack';
+import { MultipleAddButtonToMultiplePictureCameraToCreateItemStack } from './StackNavigators/CreateItemToPictureCameraStack';
+
+import { ChatsToCustomChatStack } from './StackNavigators/ChatsToCustomChatStack';
 import { highlightGreen } from '../colors';
 import { BadgeIcon, MarketplaceIcon } from '../localFunctions/visualFunctions';
 // import firebase from '../cloud/firebase';
@@ -17,7 +17,7 @@ import { BadgeIcon, MarketplaceIcon } from '../localFunctions/visualFunctions';
 let iconName;
 let iconSize = 25;
 
-profileToEditProfileStack.navigationOptions = {
+ProfileToEditProfileStack.navigationOptions = {
   tabBarLabel: "Profile",
   tabBarIcon: ({ focused, tintColor }) => {
     iconName = focused ? 'account-circle' : 'account';
@@ -26,7 +26,7 @@ profileToEditProfileStack.navigationOptions = {
   }
 };
 
-marketToProductDetailsOrChatOrCommentsStack.navigationOptions = {
+MarketToProductDetailsOrChatOrCommentsStack.navigationOptions = {
   tabBarLabel: "Market",
   tabBarIcon: ({ focused, tintColor }) => {
     iconSize = focused ? 30 : 25;
@@ -34,7 +34,7 @@ marketToProductDetailsOrChatOrCommentsStack.navigationOptions = {
   }
 };
 
-multipleAddButtonToMultiplePictureCameraToCreateItemStack.navigationOptions = {
+MultipleAddButtonToMultiplePictureCameraToCreateItemStack.navigationOptions = {
   tabBarLabel: "Sell",
   tabBarIcon: ({ focused, tintColor }) => {
     iconName = focused ? 'plus-circle' : 'plus-circle-outline';
@@ -52,14 +52,14 @@ ChatsToCustomChatStack.navigationOptions = {
   }
 };
 
-wishListToProductDetailsOrChatOrCommentsStack.navigationOptions = {
-  tabBarLabel: "Favorites",
-  tabBarIcon: ({ focused, tintColor }) => {
-    iconName = 'basket';
-    iconSize = focused ? 30 : 25;
-    return <BadgeIcon name={iconName} size={iconSize} color={tintColor} unreadCount={false} />;
-  }
-};
+// wishListToProductDetailsOrChatOrCommentsStack.navigationOptions = {
+//   tabBarLabel: "Favorites",
+//   tabBarIcon: ({ focused, tintColor }) => {
+//     iconName = 'basket';
+//     iconSize = focused ? 30 : 25;
+//     return <BadgeIcon name={iconName} size={iconSize} color={tintColor} unreadCount={false} />;
+//   }
+// };
 
 
 
@@ -67,11 +67,11 @@ const TabNavigator = createBottomTabNavigator(
             {
 
               
-              Profile: profileToEditProfileStack,
+              Profile: ProfileToEditProfileStack,
               
-              Market: marketToProductDetailsOrChatOrCommentsStack,
+              Market: MarketToProductDetailsOrChatOrCommentsStack,
               
-              Sell: multipleAddButtonToMultiplePictureCameraToCreateItemStack,
+              Sell: MultipleAddButtonToMultiplePictureCameraToCreateItemStack,
               
               Chats: ChatsToCustomChatStack,
               
@@ -137,7 +137,7 @@ const TabNavigator = createBottomTabNavigator(
                 showLabel: false
 
               },
-              // animationEnabled: true,
+              animationEnabled: true,
               // swipeEnabled: false,
             }
           ); 

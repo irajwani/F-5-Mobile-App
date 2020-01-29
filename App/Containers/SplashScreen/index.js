@@ -13,7 +13,7 @@ import { connect } from 'react-redux'
 import styles from './styles'
 import { Metrics } from '../../Theme';
 
-let companyName = "Wafadaar"
+let companyName = "F5"
 const splashScreenDuration = 200;
 // FIRST CONTAINER REACT COMPONENT THAT MOUNTS
 class SplashScreen extends React.Component {

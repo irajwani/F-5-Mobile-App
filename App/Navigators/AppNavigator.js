@@ -1,12 +1,6 @@
-import React from 'react'
-
-import {View} from 'react-native'
-
 import { createAppContainer, createSwitchNavigator } from 'react-navigation'
-// import {createStackNavigator} from 'react-navigation-stack'
-// import { Animated, Easing } from 'react-native'
 
-import AuthStack from './StackNavigators/AuthStack'
+import {SignUpToCreateProfileStack} from './StackNavigators/SignUpToCreateProfileStack'
 
 import SplashScreen from '../Containers/SplashScreen'
 
@@ -17,11 +11,11 @@ import { StackStyles } from '../Theme/NavigationStyles'
 const AuthOrAppSwitch = createSwitchNavigator(
   {
       AuthStack: SignUpToCreateProfileStack,
-      AuthLoadingScreen: SplashScreen,
+      SplashScreen,
       AppStack: TabNavigator,
   },
   {
-    initialRouteName: 'AuthLoadingScreen',
+    initialRouteName: 'SplashScreen',
     ...StackStyles
   }
 )

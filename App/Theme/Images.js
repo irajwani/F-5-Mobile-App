@@ -10,12 +10,7 @@ const path = '../Assets/Images'
 export default {
   menuBars: require(`${path}/menu-bars.png`),
   // backArrow: require(`${path}/white-arrow-back.png`),
-  logo: require(`${path}/logo.png`),
-
-  blankAvatar: require(`${path}/blank.jpg`),
   smallProfile: require(`${path}/smallProfile.jpg`),
-
-  loginBg: require(`${path}/loginBg.jpg`),
 
   BackArrow: ({onPress}) => (
     <Icon 
