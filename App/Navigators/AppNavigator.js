@@ -10,27 +10,20 @@ import AuthStack from './StackNavigators/AuthStack'
 
 import SplashScreen from '../Containers/SplashScreen'
 
-import DrawerNavigator from './DrawerNavigator'
+import TabNavigator from './TabNavigator'
 
 import { StackStyles } from '../Theme/NavigationStyles'
 
-const SwitchNavigator = createSwitchNavigator(
+const AuthOrAppSwitch = createSwitchNavigator(
   {
-    AuthStack,
-    SplashScreen,
-    AppStack: DrawerNavigator,
-    // AppStack: () => (
-    //   <View style={{backgroundColor: 'red', flex: 1}}>
-
-    //   </View>
-    // ),
-
+      AuthStack: SignUpToCreateProfileStack,
+      AuthLoadingScreen: SplashScreen,
+      AppStack: TabNavigator,
   },
   {
-    initialRouteName: 'SplashScreen',
-
+    initialRouteName: 'AuthLoadingScreen',
     ...StackStyles
   }
 )
 
-export default createAppContainer(SwitchNavigator)
+export default createAppContainer(AuthOrAppSwitch)
