@@ -1,6 +1,6 @@
 import { createAppContainer, createSwitchNavigator } from 'react-navigation'
 
-import {SignUpToCreateProfileStack} from './StackNavigators/SignUpToCreateProfileStack'
+import AuthStack from './StackNavigators/AuthStack'
 
 import SplashScreen from '../Containers/SplashScreen'
 
@@ -10,7 +10,7 @@ import { StackStyles } from '../Theme/NavigationStyles'
 
 const AuthOrAppSwitch = createSwitchNavigator(
   {
-      AuthStack: SignUpToCreateProfileStack,
+      AuthStack,
       SplashScreen,
       AppStack: TabNavigator,
   },

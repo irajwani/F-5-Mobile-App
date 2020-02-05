@@ -109,26 +109,11 @@ class SplashScreen extends React.Component {
     
             
         })
-      }
-
-//   componentWillMount() {
-
-//     AsyncStorage.removeItem('token')
-//     setTimeout(async () => {
-//       let token = await AsyncStorage.getItem('token')
-//       if (token) {
-//         // console.tron.log(`User may skip auth process ${token}`)
-//         NavigationService.navigate('DrawerNavigator')
-//       } else {
-//         NavigationService.navigateAndReset('AuthStack')
-//       }
-//     }, splashScreenDuration)
-//   }
+    }
 
     render() {
         return (
           <SafeAreaView style={styles.container}>
-            {/* <Image source={Images.logo} style={{ height: 100, width: 300 }} /> */}
             <Text style={styles.companyName}>{companyName}</Text>
           </SafeAreaView>
         )

@@ -1,8 +1,9 @@
 import { createStackNavigator } from 'react-navigation-stack';
 
-import Welcome from '../views/Welcome';
+import Welcome from '../../Containers/Welcome';
 
-// import CreateProfile from '../views/CreateProfile';
+import CreateProfile from '../../Containers/CreateProfile';
+import SignIn from '../../Containers/SignIn';
 // import SignIn from '../views/SignIn';
 
 // import MultiplePictureCamera from '../components/MultiplePictureCamera';
@@ -11,11 +12,11 @@ import Welcome from '../views/Welcome';
 // import CameraForEachPicture from '../components/CameraForEachPicture';
 import { StackStyles } from '../../Theme/NavigationStyles';
 
-export const SignUpToCreateProfileStack = createStackNavigator({
+const AuthStack = createStackNavigator({
     
     Welcome,
-    // SignIn: SignIn,
-    // CreateProfile: CreateProfile,
+    SignIn: SignIn,
+    CreateProfile,
     // MultipleAddButton: MultipleAddButton,
     // CameraForEachPicture: CameraForEachPicture,
     // MultiplePictureCamera: MultiplePictureCamera,
@@ -24,5 +25,8 @@ export const SignUpToCreateProfileStack = createStackNavigator({
 {   
     initialRouteName: 'Welcome',
     ...StackStyles
-  })
+}
+)
+
+export default AuthStack
 

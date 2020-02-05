@@ -1,12 +1,15 @@
-import React, { Component } from 'react'
-import { Text, View } from 'react-native'
+import React, {Component} from 'react';
+import Products from '../../components/Products';
+import {withNavigation} from 'react-navigation';
 
-export default class MarketPlace extends Component {
-    render() {
-        return (
-            <View>
-                <Text> textInComponent </Text>
-            </View>
-        )
-    }
+
+class MarketPlace extends Component {
+
+  render() {
+    
+    return <Products />
+
+  }
 }
+
+export default withNavigation(MarketPlace);

@@ -1,26 +1,26 @@
 import { createStackNavigator } from 'react-navigation-stack';
 
+import { StackStyles } from '../../Theme/NavigationStyles';
 
 import NotificationsAndChats from '../../Containers/NotificationsAndChats';
-import { StackStyles } from '../../Theme/NavigationStyles';
-// import CustomChat from '../views/CustomChat';
+import CustomChat from '../../Containers/NotificationsAndChats/CustomChat';
 
-// import OtherUserProfilePage from '../views/OtherUserProfilePage';
+import OtherUserProfilePage from '../../Containers/ProfilePage/OtherUserProfilePage';
 
-// import UserComments from '../views/UserComments';
+import UserComments from '../../Containers/Comments/UserComments';
 
 
-// import OtherUserProducts from '../views/OtherUserProducts';
-// import OtherUserSoldProducts from '../views/OtherUserSoldProducts';
+import OtherUserProducts from '../../Containers/MarketPlace/OtherUserProducts';
+import OtherUserSoldProducts from '../../Containers/MarketPlace/OtherUserSoldProducts';
 
 
 export const ChatsToCustomChatStack = createStackNavigator({
     NotificationsAndChats: NotificationsAndChats,
-    // CustomChat: CustomChat,
-    // OtherUserProfilePage: OtherUserProfilePage,
-    // UserComments: UserComments,
-    // OtherUserProducts,
-    // OtherUserSoldProducts
+    CustomChat: CustomChat,
+    OtherUserProfilePage: OtherUserProfilePage,
+    UserComments: UserComments,
+    OtherUserProducts,
+    OtherUserSoldProducts
 
 },{
     initialRouteName: 'NotificationsAndChats',
