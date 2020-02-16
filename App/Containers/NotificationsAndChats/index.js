@@ -15,9 +15,10 @@ import { LoadingIndicator, CustomTouchableO, WhiteSpace } from '../../localFunct
 import { withNavigation } from 'react-navigation';
 import { textStyles } from '../../StyleSheets/textStyles';
 
-import {Images} from '../../Theme'
+import {Images, Colors} from '../../Theme'
 
 import {Config} from '../../Config'
+import { TabHeader } from '../../components/HeaderBar';
 let {API_URL} = Config;
 
 const DaysOfTheWeek = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat']
@@ -25,8 +26,8 @@ const {width} = Dimensions.get('window');
 
 const pictureWidth = 60, pictureHeight = 60, pictureBorderRadius = 30;
 
-const notificationHeaderText = "NottMyStyle";
-const noNotificationsText = "The NottMyStyle team believes your products don't warrant any stats yet 👌, thus you have no notifications.";
+const notificationHeaderText = "F5";
+const noNotificationsText = "You have no notifications.";
 
 const NotificationTextScroll = ({children, customFlex}) => (
   <View style={customFlex ? {flex: customFlex} : styles.detailsTextContainer}>
@@ -142,7 +143,8 @@ class Chats extends Component {
                   }
               </View>
               <View style={{flex: 0.9, alignItems: 'stretch', marginHorizontal: 4}}>
-                <Image 
+                <ProgressiveImage
+                thumbnailSource={Images.smallProfile}
                 source={this.state.yourUid == chat.sellerIdentification ? chat.buyerAvatar ? {uri: chat.buyerAvatar } : Images.logo : chat.sellerAvatar ? {uri: chat.sellerAvatar } : Images.logo   } 
                 style={[styles.picture, {borderRadius: pictureBorderRadius}]} />
               </View>
@@ -159,7 +161,9 @@ class Chats extends Component {
             </TouchableOpacity>
 
             <TouchableOpacity onLongPress={() => this.handleLongPress(index)} onPress={() => this.navToChat(chat)} style={styles.pictureContainer}>
-              <Image source={ {uri: chat.productImageURL }} 
+              <ProgressiveImage 
+              thumbnailSource={Images.smallProfile}
+              source={ {uri: chat.productImageURL }} 
               style={styles.picture} />
             </TouchableOpacity>
 
@@ -459,7 +463,7 @@ class Notifications extends Component {
             <FontAwesomeIcon
               name='close'
               size={28}
-              color={'black'}
+              color={Colors.primary}
               onPress = { () => { 
                   this.setState({showDetails: false })
                   } }
@@ -539,7 +543,7 @@ class Notifications extends Component {
           <FontAwesomeIcon
             name='close'
             size={28}
-            color={'black'}
+            color={Colors.primary}
             onPress = { () => { 
                 this.setState({showDetails: false })
                 } }
@@ -558,7 +562,7 @@ class Notifications extends Component {
         <NotificationTextScroll>
           <Text style={styles.detailsText}>Hi {details.sellerName},</Text>
           <Text style={styles.detailsText}>
-          Congratulations for successfully selling {details.name}. The payment has been released by our team and should be processed within 2-3 day working days. If the payment doesn't reach your account, contact us on nottmystyle.help@gmail.com.
+          Congratulations for successfully selling {details.name}. The payment has been released by our team and should be processed within 2-3 day working days. If the payment doesn't reach your account, contact us on f5.help@gmail.com.
           </Text>
         </NotificationTextScroll>
           
@@ -602,7 +606,7 @@ class Notifications extends Component {
               <FontAwesomeIcon
                 name='close'
                 size={28}
-                color={'black'}
+                color={Colors.primary}
                 onPress = { () => { 
                     this.setState({showDetails: false })
                     } }
@@ -633,7 +637,7 @@ class Notifications extends Component {
               </Text>
               <WhiteSpace height={10}/>
               <Text style={styles.detailsText}>
-              Please note that it may take up to 2 weeks for the item to arrive via postal delivery. In case your item doesn't arrive, send us an email at nottmystyle.help@gmail.com.
+              Please note that it may take up to 2 weeks for the item to arrive via postal delivery. In case your item doesn't arrive, send us an email at f5.help@gmail.com.
               </Text>
             </NotificationTextScroll>
               
@@ -668,7 +672,7 @@ class Notifications extends Component {
               <FontAwesomeIcon
                 name='close'
                 size={28}
-                color={'black'}
+                color={Colors.primary}
                 onPress = { () => { 
                     this.setState({showDetails: false })
                     } }
@@ -695,7 +699,7 @@ class Notifications extends Component {
                 </Text>
                 <WhiteSpace height={10}/>
                 <Text style={styles.detailsText}>
-                Please note that it may take up to 2 weeks for the item to arrive via postal delivery. In case your item doesn't arrive, send us an email at nottmystyle.help@gmail.com.
+                Please note that it may take up to 2 weeks for the item to arrive via postal delivery. In case your item doesn't arrive, send us an email at f5.help@gmail.com.
                 </Text>
               </NotificationTextScroll>
                 
@@ -738,7 +742,7 @@ class Notifications extends Component {
               <FontAwesomeIcon
                 name='close'
                 size={28}
-                color={'black'}
+                color={Colors.primary}
                 onPress = { () => { 
                     this.setState({showDetails: false })
                     } }
@@ -972,12 +976,45 @@ class NotificationsAndChats extends Component {
       
     }
 
-    renderUpperNavTab = () => {
+    NavBlock = (text, unreadMessagesCount, onPress) => {
 
+      return (
+        
+    
+        <TouchableOpacity 
+        disabled={text == "Chats" ? this.state.showChats ? true : false : this.state.showChats ? false : true} 
+        onPress={onPress} 
+        style={[
+          styles.upperNavTabButton, 
+          text == "Chats" ? 
+            this.state.showChats ? styles.upperNavTabBorder : null 
+            : 
+            !this.state.showChats ? styles.upperNavTabBorder : null
+          ]}
+        >
+          <Text style={[styles.upperNavTabText, this.state.showChats ? {color: highlightGreen} : null]}>{text}</Text>
+          {unreadMessagesCount > 0 ?
+            <View style={styles.notificationCountContainer}>
+              <Text style={{color: '#fff', fontSize: 17, fontWeight: '300'}}>{unreadMessagesCount}</Text>
+            </View>
+            :
+            null
+          }
+        </TouchableOpacity>
+
+        
+      )
+    }
+
+    renderUpperNavTab = () => {
+        let {unreadChatsCount, unreadCount} = this.state
         return (
           <View style={styles.upperNavTab}>
+
+            {this.NavBlock("Chats", unreadChatsCount, ()=>this.setState({showChats: true}))}
+            {this.NavBlock("Notifications", unreadCount, ()=>this.setState({showChats: false}))}
     
-            <TouchableOpacity disabled={this.state.showChats ? true : false} onPress={()=>this.setState({showChats: true})} style={[styles.upperNavTabButton, this.state.showChats ? {borderBottomColor: highlightGreen, borderBottomWidth: 1} : null]}>
+            {/* <TouchableOpacity disabled={this.state.showChats ? true : false} onPress={()=>this.setState({showChats: true})} style={[styles.upperNavTabButton, this.state.showChats ? {borderBottomColor: highlightGreen, borderBottomWidth: 1} : null]}>
               <Text style={[styles.upperNavTabText, this.state.showChats ? {color: highlightGreen} : null]}>Chats</Text>
               {this.state.unreadChatsCount > 0 ?
                 <View style={styles.notificationCountContainer}>
@@ -997,7 +1034,7 @@ class NotificationsAndChats extends Component {
                 :
                 null
               }
-            </TouchableOpacity>
+            </TouchableOpacity> */}
             
           </View>
         )
@@ -1015,7 +1052,7 @@ class NotificationsAndChats extends Component {
         else {
           return (
             <SafeAreaView style={styles.container}>
-              
+                <TabHeader text={"Messages"}/>
                 {this.renderUpperNavTab()}
                 {this.state.showChats ?
                   <Chats uid={this.state.uid} navigationProperty={this.props.navigation}/>
@@ -1041,37 +1078,44 @@ const styles = StyleSheet.create({
     
   },
   upperNavTab: {
-    flex: 0.15,
+    flex: 0.1,
     flexDirection: 'row',
     // justifyContent: 'space-evenly',
     // alignItems: 'center',
     backgroundColor: '#fff',
   },
-  upperNavTabButton: {
-    // backgroundColor: ,
-    // width: navTabButtonWidth,
-    // height: 50,
-    
-    // borderWidth: 1.3,
-    // borderRadius: 30,
-    // borderColor: "#fff",
-    flex: 0.5,
-    padding: 10,
-    justifyContent: 'center',
-    alignItems: 'center',
-    borderBottomWidth:1,
-    borderBottomColor: '#fff'
-  },
+    upperNavTabButton: {
+      // backgroundColor: ,
+      // width: navTabButtonWidth,
+      // height: 50,
+      
+      // borderWidth: 1.3,
+      // borderRadius: 30,
+      // borderColor: "#fff",
+      flex: 0.5,
+      padding: 10,
+      justifyContent: 'center',
+      alignItems: 'center',
+      borderBottomWidth:1,
+      borderBottomColor: '#fff'
+    },
 
-  upperNavTabText: new avenirNextText('black', 18, "300"),
+    upperNavTabText: new avenirNextText('black', 18, "300"),
+
+    upperNavTabBorder: {
+      borderBottomColor: Colors.tertiary, borderBottomWidth: 2
+    },
 
   notificationCountContainer: { 
     justifyContent: 'center', alignItems: 'center',
-    right: 15,position: 'absolute',
+    zIndex: 999,
+    top: 10,
+    right: 15,
+    position: 'absolute',
      borderRadius: 10, width: 20, height: 20, backgroundColor: treeGreen
   },
   ////////////////
-  screen: { flex: 0.85, backgroundColor: '#fff' },
+  screen: { flex: 0.8, backgroundColor: '#fff' },
 
   cc: {
     paddingHorizontal: 6, alignItems: 'center'

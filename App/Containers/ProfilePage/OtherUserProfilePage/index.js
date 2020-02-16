@@ -114,7 +114,7 @@ class OtherUserProfilePage extends Component {
   handleReportTextChange = (report) => this.setState({report})
 
   sendReport = (uid, report) => {
-    const recipients = ['nottmystyle.help@gmail.com'] // string or array of email addresses
+    const recipients = ['imadrajwani@gmail.com'] // string or array of email addresses
     email(recipients, {
         // Optional additional arguments
         //cc: ['bazzy@moo.com', 'doooo@daaa.com'], // string or array of email addresses

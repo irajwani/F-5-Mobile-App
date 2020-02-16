@@ -60,5 +60,21 @@ fetchCompletionHandler:(nonnull void (^)(UIBackgroundFetchResult))completionHand
 - (void)application:(UIApplication *)application didRegisterUserNotificationSettings:(UIUserNotificationSettings *)notificationSettings {
   [[RNFirebaseMessaging instance] didRegisterUserNotificationSettings:notificationSettings];
 }
+  
+//facebook
+//- (BOOL)application:(UIApplication *)app
+//            openURL:(NSURL *)url
+//            options:(NSDictionary<UIApplicationOpenURLOptionsKey,id> *)options
+//  {
+//    if ([[FBSDKApplicationDelegate sharedInstance] application:app openURL:url options:options]) {
+//      return YES;
+//    }
+//    
+//    if ([RCTLinkingManager application:app openURL:url options:options]) {
+//      return YES;
+//    }
+//    
+//    return NO;
+//  }
 
 @end

@@ -146,7 +146,7 @@ export default class ConditionSelection extends Component {
                     <ScrollView style={styles.selectionContainer} contentContainerStyle={styles.typesContainer}>
                         <View style={styles.sizesInfo}>
                             <Text style={[styles.sizesInfoText, {textAlign: 'center'}]}>
-                                NottMyStyle uses the following size formats: UK / US or International / UK / US.
+                                F5 uses the following size formats: UK / US or International / UK / US.
                             </Text>
                         </View>
                         {

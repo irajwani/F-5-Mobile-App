@@ -1,5 +1,8 @@
 import React, { Component } from 'react'
 import { Platform, ScrollView, View, Image, StyleSheet, TouchableHighlight, TouchableOpacity, PermissionsAndroid } from 'react-native'
+
+import NavigationService from "../Services/NavigationService"
+
 import Svg, { Path } from 'react-native-svg';
 // import Icon from 'react-native-vector-icons/FontAwesome'
 import ActionSheet from 'react-native-actionsheet'
@@ -99,10 +102,10 @@ class MultipleAddButton extends Component {
   }
 
   launchCamera(navToComponent) {
-    // console.log('launching camera');
-    const {navigation} = this.props;
+    console.log('launching camera');
+    // const {navigation} = this.props;
     // Platform.OS == "ios" ? 
-    navigation.navigate('MultiplePictureCamera', {navToComponent: `${navToComponent}` }) 
+    NavigationService.navigate('MultiplePictureCamera', {navToComponent: `${navToComponent}` }) 
       
       // this.launchImagePickerCamera(navToComponent);
       
@@ -185,7 +188,7 @@ class MultipleAddButton extends Component {
         if (granted === PermissionsAndroid.RESULTS.GRANTED) {
           this.launchGallery(navToComponent);
         } else {
-          alert('NottMyStyle cannot select a picture(s) from your gallery without your permission to access your gallery.');
+          alert('F5 cannot select a picture(s) from your gallery without your permission to access your gallery.');
         }
     } catch (err) {
       console.warn(err)
@@ -194,7 +197,15 @@ class MultipleAddButton extends Component {
 
   renderCarousel = (pictureuris) => (
     <TouchableOpacity style={styles.carouselContainer} onPress={this.platformSpecificAction}>
-      <CustomCarousel data={pictureuris} biggerImage={true}/>
+    {this.props.navToComponent == "CreateProfile" || this.props.navToComponent == "EditProfile" ? 
+      <Image 
+        source={pictureuris === 'nothing here' ? Images.nothingHere : {uri: pictureuris[0]} } 
+        style={[styles.mainPictureCP, {backgroundColor: 'transparent'}]}
+      />
+      :
+      <CustomCarousel data={pictureuris} biggerImage={true} noLightbox={true} onLongPress={this.platformSpecificAction}/>
+    }
+      
     </TouchableOpacity>
   )
 
@@ -312,17 +323,17 @@ const styles = StyleSheet.create( {
     height: 100
   },
   mainContainer: {
-    flex: 1,
-    flexDirection: 'column',
-    justifyContent: 'center',
-    alignItems: 'center',
-    padding: 5,
+    // flex: 1,
+    // flexDirection: 'column',
+    // justifyContent: 'center',
+    // alignItems: 'center',
+    // padding: 5,
     
   },
 
 
   carouselContainer: {
-    flex: 1,
+    // flex: 1,
     flexDirection: 'row',
     // backgroundColor: 'red',
     width: "100%"

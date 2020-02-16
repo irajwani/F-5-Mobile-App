@@ -18,7 +18,8 @@ import { textStyles } from '../StyleSheets/textStyles.js';
 
 import {Metrics, Colors, Fonts, Images} from '../Theme'
 import { removeValueFromArray } from '../localFunctions/arrayFunctions.js';
-
+import Container from './Container/index.js';
+import {TabHeader} from './HeaderBar'
 const {smallMargin} = Metrics;
 
 
@@ -847,17 +848,18 @@ class Products extends Component {
     
   }
 
-  renderHeaderBar = () => (
-    <View style={styles.headerBar}>
-      <Text style={styles.headerText}>Marketplace</Text>
-    </View>
-  )
+  // renderHeaderBar = () => (
+  //   <View style={styles.headerBar}>
+  //     <Text style={styles.headerText}>Marketplace</Text>
+  //   </View>
+  // )
 
   renderFilterBar = () => (
     <View style={styles.quickFilterBar}>
-      {categories.map(category => (
-        <TouchableOpacity onPress={() => this.quickFilterBy(category)} style={[styles.quickFilterContainer, this.state.categoriesSelected.includes(category) ? {borderBottomColor: highlightGreen, borderBottomWidth: 3} : null]}>
-          <Text style={styles.quickFilter}>{category.toUpperCase()}</Text>
+      {categories.map((category, index) => (
+        <TouchableOpacity key={index} onPress={() => this.quickFilterBy(category)} 
+        style={styles.quickFilterContainer}>
+          <Text style={[styles.quickFilter, this.state.categoriesSelected.includes(category) ? {color: Colors.tertiary} : null]}>{category.toUpperCase()}</Text>
         </TouchableOpacity>
       ))}
     </View>
@@ -1485,24 +1487,31 @@ class Products extends Component {
     
     if(isGetting == true) {
       return ( 
-        <SafeAreaView style={{flex: 1, justifyContent: 'center', alignItems: 'center', backgroundColor: '#fff'}}>
-            <LoadingIndicator />            
-        </SafeAreaView>
+        <Container>
+          <TabHeader text={"Marketplace"}/>
+          <Container style={{flex: 0.9}} center>
+            <LoadingIndicator /> 
+          </Container>
+        </Container>
       )
     }
 
     else if(emptyMarket == true) {
       return (
-        <SafeAreaView style={{flex: 1, backgroundColor: '#fff', padding: 10}}>
+        <Container>
+          <TabHeader text={"Marketplace"}/>
           {/* <NothingHereYet specificText={showCollection == true ? emptyCollectionText : (showYourProducts == true && showSoldProducts == true) ? noSoldProductsText : (showYourProducts == true && showSoldProducts == false) ? noProductsOfYourOwnText : emptyMarketText } /> */}
-        </SafeAreaView>
+        </Container>
+        
+        
+        
       )
     }
 
     else if(noResultsFromFilter == true){
 
       return(
-        <SafeAreaView style={{flex: 1, backgroundColor: '#fff', padding: 10, alignItems: 'center'}}>
+        <Container>
 
           <View style={{flex: 0.2, }}>
             <NothingHereYet specificText={noResultsFromSearchText} />
@@ -1523,7 +1532,7 @@ class Products extends Component {
           </View>
           {this.renderFilterModal()}
 
-        </SafeAreaView>
+        </Container>
       )
     }
 
@@ -1531,9 +1540,10 @@ class Products extends Component {
     // console.log('Entered MarketPlace render')
     return (
 
-      <SafeAreaView style={{flex: 1, backgroundColor: '#fff'}}>
+      <Container>
 
-        {this.renderHeaderBar()}
+        <TabHeader text={"Marketplace"}/>
+
         {this.renderFilterBar()}
         {this.renderProductsScroll()}
 
@@ -1541,7 +1551,7 @@ class Products extends Component {
 
         {this.renderLoadingModal()}
       
-      </SafeAreaView>
+      </Container>
 
     
   
@@ -1800,15 +1810,16 @@ const styles = StyleSheet.create({
   },
 
   quickFilter: {
-    ...textStyles.generic,
-    ...Fonts.tiny,
+    ...Fonts.style.tiny,
     color: Colors.black,
+    letterSpacing: 0.5,
   },
 
   productScrollContainer: {
     flex: 0.77,
     flexDirection: 'row',
-    flexWrap: 'wrap'
+    flexWrap: 'wrap',
+    marginHorizontal: smallMargin,
   },
 
   productContainer: {

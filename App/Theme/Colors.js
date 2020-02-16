@@ -22,11 +22,14 @@ const background = {
     transparent: 'rgba(0,0,0,0)',
     green: '#2b663d',
     //Example colors:
-    text: '#212529',
+    text: '#333333',
 
 
-    primary: '#f2f0eb',
-    secondary: "#171206",
+    primary: '#fff',
+    secondary: "#000000",
+    tertiary: "#52FAF2", 
+
+    facebook: "#3b5998",
 
 
     success: '#28a745',
@@ -35,7 +38,8 @@ const background = {
     gold: '#EBCE91',
     white: '#fff',
     black: '#000',
-    grey: '#989898',
+    lightgrey: "#aeb7c4",
+    grey: '#333333',
     containerBackground: '#F2F2F2',
   }
   

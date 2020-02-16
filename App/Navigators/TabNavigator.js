@@ -9,9 +9,9 @@ import { MultipleAddButtonToMultiplePictureCameraToCreateItemStack } from './Sta
 import { ChatsToCustomChatStack } from './StackNavigators/ChatsToCustomChatStack';
 import { highlightGreen } from '../colors';
 import { BadgeIcon, MarketplaceIcon } from '../localFunctions/visualFunctions';
+import { Colors } from '../Theme';
 // import firebase from '../cloud/firebase';
 // import {unreadCount} from '../localFunctions/dbFunctions';
-
 // const uid = firebase.auth().currentUser.uid;
 
 let iconName;
@@ -131,7 +131,7 @@ const TabNavigator = createBottomTabNavigator(
               // tabBarComponent: TabBarBottom,
               // tabBarPosition: 'bottom',
               tabBarOptions: {
-                activeTintColor: highlightGreen,
+                activeTintColor: Colors.tertiary,
                 inactiveTintColor: 'black',
                 // showIcon: true,
                 showLabel: false

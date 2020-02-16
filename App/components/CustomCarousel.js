@@ -36,7 +36,21 @@ class CustomCarousel extends Component {
     // console.log("rendering,", index, item)
     return (
       
-
+        this.props.noLightbox ?
+        <TouchableOpacity 
+        onPress={ () => { 
+          // console.log("clicked to index", index)
+          this._carousel.snapToItem(index);
+        }}
+        onLongPress={this.props.onLongPress}
+        style={[styles.thumbnailBackgroundView, !this.props.biggerImage ? {alignItems: 'center', justifyContent: 'center'} : null]}
+        >
+          <Image source={{ uri: item }} style={styles.image}/>
+          <View style={styles.paginationContainer}>
+            {this.pagination}
+          </View>
+        </TouchableOpacity>
+        :
         <TouchableOpacity 
         style={[styles.thumbnailBackgroundView, !this.props.biggerImage ? {alignItems: 'center', justifyContent: 'center'} : null]}
         onPress={ () => { 
@@ -46,12 +60,14 @@ class CustomCarousel extends Component {
         
         >
           
+            
             <Lightbox 
             springConfig={{tension: 30, friction: 7}}
             renderHeader={this.renderCloseHeader}
             >
               <Image source={{ uri: item }} style={styles.image}/>
             </Lightbox>
+            
 
             <View style={styles.paginationContainer}>
             {this.pagination}
@@ -138,7 +154,7 @@ class CustomCarousel extends Component {
 
 CustomCarousel.defaultProps = {
   biggerImage: false,
-  
+  noLightbox: false,
 };
 
 export default CustomCarousel;

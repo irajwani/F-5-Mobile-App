@@ -8,6 +8,7 @@ const size = {
     regular: 16,
     medium: 16,
     small: 12,
+    tiny: 8,
   }
   
   const style = {
@@ -42,6 +43,10 @@ const size = {
     small: {
       fontFamily: 'Helvetica',
       fontSize: size.small
+    },
+    tiny: {
+      fontFamily: 'Helvetica',
+      fontSize: size.tiny
     },
   }
   

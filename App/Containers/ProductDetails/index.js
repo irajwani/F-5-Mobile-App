@@ -1,9 +1,9 @@
 import React, { Component, Fragment } from 'react';
 import { Platform, TouchableWithoutFeedback, Keyboard, Animated, ScrollView, SafeAreaView, View, Text, TextInput, Image, TouchableHighlight, TouchableOpacity, Modal, Dimensions, StyleSheet, Linking, WebView } from 'react-native';
-
+import * as Animatable from 'react-native-animatable';
 import {Submit} from '../../components/Button'
+import {StackActions,NavigationActions,withNavigation} from 'react-navigation';
 
-import { withNavigation } from 'react-navigation';
 import firebase from 'react-native-firebase';
 
 import ProgressiveImage from '../../components/ProgressiveImage';
@@ -19,24 +19,29 @@ import { CHATKIT_INSTANCE_LOCATOR, CHATKIT_TOKEN_PROVIDER_ENDPOINT, CHATKIT_SECR
 import email from 'react-native-email';
 import { almostWhite, highlightGreen, treeGreen, graphiteGray, mantisGreen, logoGreen, lightGray, silver, flashOrange } from '../../colors';
 import FontAwesomeIcon from 'react-native-vector-icons/FontAwesome';
-import {Fonts, Images} from '../../Theme';
+import {Fonts, Images, Colors} from '../../Theme';
 // import BackButton from '../components/BackButton';
 import { avenirNextText, delOpt, deliveryOptions } from '../../constructors/avenirNextText';
 import { WhiteSpace, LoadingIndicator, CustomTouchableO, GraySeparation } from '../../localFunctions/visualFunctions';
+
+import borderStyles from '../../StyleSheets/borderStyles';
 
 import { textStyles } from '../../StyleSheets/textStyles';
 
 import { ifIphoneX } from 'react-native-iphone-x-helper'
 import randomUsernameString from '../../fashion/randomUsernameString';
 
+const AnimatableIcon = Animatable.createAnimatableComponent(Icon);
+
 randomUsername = new randomUsernameString();
 
+let {SmallBackArrow} = Images;
 var {height, width} = Dimensions.get('window');
 
 const limeGreen = '#2e770f';
 // const profoundPink = '#c64f5f';
 const modalAnimationType = "slide";
-const paymentScreensIconSize = 45;
+const paymentScreensIconSize = 30;
 const payPalEndpoint = Config.API_URL;
 // const payPalEndpoint = "https://localhost:5000";
 
@@ -127,6 +132,7 @@ class ProductDetails extends Component {
         {text: "Collection in person", selected: false, options: ["Contact via Chat", "OR",  paymentText], },
         {text: "Postal Delivery", selected:false}
       ],
+      addresses: false,
       fullName: "",
       addressOne: "",
       addressTwo: "",
@@ -175,7 +181,8 @@ class ProductDetails extends Component {
       // const uid = firebase.auth().currentUser.uid;
       const otherUserUid = data.uid;
       
-      var seller = cloudDatabaseUsers[otherUserUid], views = 0;
+      var seller = cloudDatabaseUsers[otherUserUid];
+      var views = cloudDatabaseUsers[otherUserUid].products[data.key].usersVisited;
 
       //get current user's profile info
       const yourProfile = d.Users[uid].profile;
@@ -254,7 +261,8 @@ class ProductDetails extends Component {
       this.setState({
         isGetting: false,
         cloudDatabaseUsers,
-        yourProfile, uid, otherUserUid, profile, productComments, addresses,
+        yourProfile, uid, otherUserUid, profile, productComments, 
+        addresses,
         productPictureURLs: cloudDatabaseUsers[data.uid].products[data.key].uris.thumbnail,
         sold: data.text.sold,
         price: data.text.price, name: data.text.name, sku: data.key, description: data.text.description.replace(/ +/g, " ").substring(0,124),
@@ -597,7 +605,7 @@ class ProductDetails extends Component {
 
 
   reportItem = (yourInformation, productInformation) => {
-    const recipients = ['nottmystyle.help@gmail.com'] // string or array of email addresses
+    const recipients = ['imadrajwani@gmail.com'] // string or array of email addresses
     const {report} = this.state
     const {uid, key, text,} = productInformation
     const {name} = text
@@ -625,14 +633,13 @@ class ProductDetails extends Component {
         <DismissKeyboardView>
             <View style={{flex: 1, marginTop: Platform.OS == "ios" ? 22 : 0}}>
                 <View style={styles.deliveryOptionHeader}>
-                  <FontAwesomeIcon
-                  name='arrow-left'
-                  size={28}
-                  color={'black'}
-                  onPress = {() => { 
-                    this.setState( {showReportUserModal: false} )
-                  }}
+                  
+                  <SmallBackArrow
+                    onPress = {() => { 
+                      this.setState( {showReportUserModal: false} )
+                    }}
                   />
+                  
               
                   <Image style={styles.logo} source={Images.logo}/>
                   
@@ -640,7 +647,7 @@ class ProductDetails extends Component {
                   <FontAwesomeIcon
                     name='close'
                     size={28}
-                    color={logoGreen}
+                    color={Colors.primary}
                     
                     />
                 </View>
@@ -698,7 +705,7 @@ class ProductDetails extends Component {
 
   handleResponse = (data) => {
     if(data.title == "success") {
-      // console.log('Payment was successful. React Native knows we are viewing index.ejs page');
+      console.log('Payment was successful. React Native knows we are viewing index.ejs page');
       // this.initializePushNotifications();
       let productAcquisitionPostData = {
         name: this.state.name, uri: this.props.navigation.state.params.data.uris.thumbnail[0],
@@ -725,11 +732,11 @@ class ProductDetails extends Component {
         //boolean to control what the notification message will look for buyer and seller
         postOrNah: this.state.postOrNah,
 
-        //handleLongPress property
+        //handleLongPress property for future usage
         selected: false
 
       };
-      // console.log(productAcquisitionPostData);
+      console.log(productAcquisitionPostData);
       let productAcquisitionUpdate = {};
       let buyerRef = `/Users/${this.state.uid}/notifications/purchaseReceipts/${this.state.sku}/`;
       let sellerRef = `/Users/${this.state.otherUserUid}/notifications/itemsSold/${this.state.sku}/`;
@@ -747,28 +754,52 @@ class ProductDetails extends Component {
     //just alert user this product has been marked as sold, and will show as such on their next visit to the app.
       let promiseToUpdateBuyerAndSellerAndSetProductAsSold = firebase.database().ref().update(productAcquisitionUpdate);
       promiseToUpdateBuyerAndSellerAndSetProductAsSold
-      .then( () => {
-        this.setState({activeScreen: "afterPaymentScreen", paymentStatus: "success"}, ()=> {
-          
-          const {params} = this.props.navigation.state;
-          // console.log("OVER HEREEEEE, Rendering After Payment Screen" + params.data);
-          this.getUserAndProductAndOtherUserData(params.data);
+      .then(() => {
+        if(this.state.currency = "Rs.") {
+          this.setState({activeScreen: "afterPaymentScreen"}, 
+          ()=> {
+            // const {params} = this.props.navigation.state;
+            // console.log("OVER HEREEEEE, Nav state has changed and re-rendering products after Payment Screen" + params.data);
+            let resetStack = StackActions.reset({
+              index: 0,
+              actions: [
+                NavigationActions.navigate({routeName: 'MarketPlace'})
+              ],
+            });
+            
+            this.props.navigation.dispatch(resetStack);
+            this.props.navigation.navigate('Chats');
+            // this.getUserAndProductAndOtherUserData(params.data, this.state.uid);
+          })
+        }
+        else {
+          this.setState({activeScreen: "afterPaymentScreen", paymentStatus: "success"}, 
+          ()=> {
+            const {params} = this.props.navigation.state;
+            console.log("OVER HEREEEEE, Nav state has changed and re-rendering products after Payment Screen" + params.data);
+            this.getUserAndProductAndOtherUserData(params.data, this.state.uid);
+          })
+            
+        }
+        
 
-        //   // console.log("Notifications updated for buyer and seller")
-        //   // send notification 1 hour later
-        //   let notificationDate = new Date();
-        //   notificationDate.setMinutes(notificationDate.getMinutes() + 2);
+
+        // //   // console.log("Notifications updated for buyer and seller")
+        // //   // send notification 1 hour later
+        // //   let notificationDate = new Date();
+        // //   notificationDate.setMinutes(notificationDate.getMinutes() + 2);
   
-        //   //         //TODO: in 20 minutes, if user's app is active (maybe it works otherwise too?), they will receive a notification
-        //   //         // var specificNotificatimessage = `Nobody has initiated a chat about, ${specificNotification.name} from ${specificNotification.brand} yet, since its submission on the market ${specificNotification.daysElapsed} days ago 🤔. Consider a price reduction from £${specificNotification.price} \u2192 £${Math.floor(0.80*specificNotification.price)}?`;
-        //   //         // console.log(message);
-        //   let message = this.state.postOrNah == 'post' ? `Your product: ${this.state.name} is being posted over by ${this.state.profile.name}. Please contact us at nottmystyle.help@gmail.com if it does not arrive in 2 weeks.` : `Please get in touch with ${this.state.profile.name} regarding your acquisition of their ${this.state.name}.`
-        //   PushNotification.localNotificationSchedule({
-        //       message: message,// (required)
-        //       date: notificationDate,
-        //       vibrate: false,
-        //   });
-        });
+        // //   //         //TODO: in 20 minutes, if user's app is active (maybe it works otherwise too?), they will receive a notification
+        // //   //         // var specificNotificatimessage = `Nobody has initiated a chat about, ${specificNotification.name} from ${specificNotification.brand} yet, since its submission on the market ${specificNotification.daysElapsed} days ago 🤔. Consider a price reduction from £${specificNotification.price} \u2192 £${Math.floor(0.80*specificNotification.price)}?`;
+        // //   //         // console.log(message);
+        // //   let message = this.state.postOrNah == 'post' ? `Your product: ${this.state.name} is being posted over by ${this.state.profile.name}. Please contact us at nottmystyle.help@gmail.com if it does not arrive in 2 weeks.` : `Please get in touch with ${this.state.profile.name} regarding your acquisition of their ${this.state.name}.`
+        // //   PushNotification.localNotificationSchedule({
+        // //       message: message,// (required)
+        // //       date: notificationDate,
+        // //       vibrate: false,
+        // //   });
+        // }
+        // );
         
 
         // console.log("Payment successfully went through");
@@ -784,7 +815,7 @@ class ProductDetails extends Component {
     }
 
     else if(data.title == "cancel") {
-        this.setState({showModal: "afterPaymentScreen", paymentStatus: "canceled"}, () => this.getUserAndProductAndOtherUserData(this.props.navigation.state.params.data));
+        this.setState({showModal: "afterPaymentScreen", paymentStatus: "canceled"}, () => this.getUserAndProductAndOtherUserData(this.props.navigation.state.params.data, this.state.uid));
     }
     else {
         return;
@@ -801,6 +832,7 @@ class ProductDetails extends Component {
         case "choosePaymentMethod":
           this.setState({activeScreen: "afterPaymentScreen"});
           break;
+        
 
       }
     } else {
@@ -849,6 +881,9 @@ class ProductDetails extends Component {
     this.setState({showPurchaseModal: false });
   }
 
+  togglePakPurchaseModal = () => this.setState({showPakPurchaseModal: !this.state.showPakPurchaseModal })
+  
+
   // renderPictureModal = () => {
   //   return (
   //     <Modal 
@@ -885,17 +920,21 @@ class ProductDetails extends Component {
       <TouchableOpacity onPress={this.goToAddDeliveryAddress} style={styles.addDeliveryAddressButton}>
           <View style={{
             flexDirection: 'row',
-            paddingHorizontal: 20,
-            paddingVertical: 15,
+            padding: 5,
+            // paddingHorizontal: 20,
+            // paddingVertical: 55,
             justifyContent: 'space-evenly',
-            alignItems: 'center'
+            alignItems: 'center',
+            ...borderStyles.thinBorder,
+            borderRadius: 20,
+            marginHorizontal: 20,
           }}>
             <Icon
               name="plus"
-              size={30}
+              size={26}
               color={mantisGreen}
             />
-            <Text style={new avenirNextText("black", 20, "300")}>
+            <Text style={{...Fonts.style.medium}}>
               Add your delivery address
             </Text>
             
@@ -958,22 +997,22 @@ class ProductDetails extends Component {
     <View style={[styles.deliveryOptionBody, {flex: 0.9}]}>
 
       <View style={{flex: 0.1}}>
-        <Text style={new avenirNextText('black', 17, "400")}>
+        <Text style={{...Fonts.style.medium}}>
           Address:
         </Text>
       </View>
 
-      <WhiteSpace height={10}/>
-      <ScrollView style={{flex: 0.25}} contentContainerStyle={styles.addressForm}>
+      
+      <ScrollView style={{flex: 0.7}} contentContainerStyle={styles.addressForm}>
           {addressFields.map( (field, index) => (
             <View style={styles.addressField}>
-              <Text style={new avenirNextText("black", 14, "400")}>{field.header}</Text>
+              <Text style={{...Fonts.style.small, color: Colors.lightgrey, fontWeight: "600", textDecorationLine: "underline"}}>{field.header}</Text>
               <TextInput
               onChangeText={(text) => this.onChange(text, field.key)}
               value={this.state[field.key]}
-              style={{height: 50, width: 280, fontFamily: 'Avenir Next', fontSize: 13, color: treeGreen}}
+              style={{height: 50, width: 280, ...Fonts.style.medium}}
               placeholder={field.placeholder}
-              placeholderTextColor={graphiteGray}
+              placeholderTextColor={Colors.lightgrey}
               multiline={false}
               maxLength={index == 1 || index == 2 ? 50 : 24}
               autoCorrect={false}
@@ -983,7 +1022,7 @@ class ProductDetails extends Component {
           ))}
       </ScrollView>
 
-      <View style={[styles.collectionInPersonContainer, {flex: 0.65}]}>
+      <View style={[styles.collectionInPersonContainer, {flex: 0.2}]}>
 
         <TouchableOpacity
         disabled={filledOutAddress ? false : true} 
@@ -995,10 +1034,10 @@ class ProductDetails extends Component {
             <FontAwesomeIcon
               name="address-book"
               size={paymentScreensIconSize}
-              color={'black'}
+              color={Colors.primary}
 
             />
-            <Text style={{...textStyles.generic, fontSize: 20}}>
+            <Text style={{...Fonts.style.medium, color: Colors.primary}}>
               Add Address
             </Text>
             
@@ -1032,15 +1071,12 @@ class ProductDetails extends Component {
   
             <View style={deliveryOptionHeader}>
   
-              
-              <FontAwesomeIcon
-                name='arrow-left'
-                size={28}
-                color={'black'}
+              <SmallBackArrow 
                 onPress = { () => { 
-                    this.setState({showPurchaseModal: false })
-                    } }
-                />
+                  this.setState({showPurchaseModal: false })
+                }}
+              />
+              
             
               <Image style={styles.logo} source={Images.logo}/>
               
@@ -1048,7 +1084,7 @@ class ProductDetails extends Component {
               <FontAwesomeIcon
                 name='close'
                 size={28}
-                color={'black'}
+                color={Colors.primary}
                 onPress = { () => { 
                     this.setState({showPurchaseModal: false })
                     } }
@@ -1112,7 +1148,7 @@ class ProductDetails extends Component {
             <CustomTouchableO 
             onPress={this.goToNextPage}
             disabled={this.state.deliveryOptions[0].selected || this.state.deliveryOptions[1].selected ? false : true } 
-            flex={0.15} color={'#39b729'} text={'Next'} textColor={'#fff'} textSize={25}
+            flex={0.15} color={Colors.secondary} text={'Next'} textColor={'#fff'} textSize={25}
             />
             
            
@@ -1135,23 +1171,19 @@ class ProductDetails extends Component {
   
             <View style={deliveryOptionHeader}>
   
-              
-              <FontAwesomeIcon
-                name='arrow-left'
-                size={28}
-                color={'black'}
+              <SmallBackArrow 
                 onPress = { () => { 
-                    this.goToPreviousPage()
-                    // this.setState({showPurchaseModal: false })
-                    } }
-                />
+                  this.goToPreviousPage()
+                  // this.setState({showPurchaseModal: false })
+                }}
+              />
             
               <Image style={styles.logo} source={Images.logo}/>
               
               <FontAwesomeIcon
                 name='close'
                 size={28}
-                color={'black'}
+                color={Colors.primary}
                 onPress = { () => { 
                   //TODO: clear selected options in deliveryOptions
                     this.setState({showPurchaseModal: false })
@@ -1181,7 +1213,7 @@ class ProductDetails extends Component {
                       <TouchableOpacity 
                       style={[styles.collectionInPersonButton, {width: index == 0 ? chatButtonWidth : paymentButtonWidth}]}
                       onPress = { () => { 
-                        // console.log('going to chat');
+                        // Chat with person first or just purchase through paypal with no postage fees
                         //subscribe to room key
                         if(index == 0) {
                           if(this.state.canChatWithOtherUser) {
@@ -1208,7 +1240,7 @@ class ProductDetails extends Component {
                             
 
                           />
-                          <Text style={new avenirNextText('black', 20, "300")}>
+                          <Text style={{...Fonts.style.medium}}>
                             {option}
                           </Text>
                           
@@ -1222,7 +1254,7 @@ class ProductDetails extends Component {
 
                     <View style={styles.collectionInPersonContainer}>
 
-                      <Text style={new avenirNextText(graphiteGray, 28, "300")}>OR</Text>
+                      <Text style={{...Fonts.style.big, color: Colors.secondary}}>OR</Text>
 
                     </View>
 
@@ -1254,10 +1286,7 @@ class ProductDetails extends Component {
           <View style={deliveryOptionHeader}>
 
             
-            <FontAwesomeIcon
-              name='arrow-left'
-              size={28}
-              color={'black'}
+            <SmallBackArrow
               onPress = { () => { 
                   this.goToPreviousPage()
                   // this.setState({showPurchaseModal: false })
@@ -1269,7 +1298,7 @@ class ProductDetails extends Component {
             <FontAwesomeIcon
               name='close'
               size={28}
-              color={'black'}
+              color={Colors.primary}
               onPress = { () => { 
                 //TODO: clear selected options in deliveryOptions
                   this.setState({showPurchaseModal: false })
@@ -1315,7 +1344,7 @@ class ProductDetails extends Component {
                       color={chatIcon.color}
 
                     />
-                    <Text style={new avenirNextText('black', 20, "300")}>
+                    <Text style={{...Fonts.style.medium}}>
                       {paymentText}
                     </Text>
                     
@@ -1348,10 +1377,7 @@ class ProductDetails extends Component {
           <View style={deliveryOptionHeader}>
 
             
-            <FontAwesomeIcon
-              name='arrow-left'
-              size={28}
-              color={'black'}
+            <SmallBackArrow
               onPress = { () => { 
                   this.goToPreviousPage()
                   // this.setState({showPurchaseModal: false })
@@ -1363,7 +1389,7 @@ class ProductDetails extends Component {
             <FontAwesomeIcon
               name='close'
               size={28}
-              color={'black'}
+              color={Colors.primary}
               onPress={this.closePurchaseModal}
               />
 
@@ -1416,17 +1442,15 @@ class ProductDetails extends Component {
 
             <View style={deliveryOptionHeader}>
 
-              <FontAwesomeIcon
-                name='arrow-left'
-                size={28}
-                color={logoGreen}
+              <SmallBackArrow
+                onPress={this.closePurchaseModal}
               />
               <Image style={styles.logo} source={Images.logo}/>
               
               <FontAwesomeIcon
                 name='close'
                 size={28}
-                color={'black'}
+                color={Colors.primary}
                 onPress={this.closePurchaseModal}
               />
             </View>
@@ -1454,7 +1478,7 @@ class ProductDetails extends Component {
                     <Text style={styles.successText}>
                     Your item will be delivered to:
                     {this.state.selectedAddress.addressOne + ", " + this.state.selectedAddress.addressTwo + ", " + this.state.selectedAddress.city + ", " + this.state.selectedAddress.postCode}.
-                    Please note that it may take up to 2 weeks for the item to arrive via postal delivery. In case your item doesn't arrive, send us an email at nottmystyle.help@gmail.com.
+                    Please note that it may take up to 2 weeks for the item to arrive via postal delivery. In case your item doesn't arrive, send us an email at f5.help@gmail.com.
                     </Text>
                     :
                     <Text style={styles.successText}>
@@ -1492,6 +1516,7 @@ class ProductDetails extends Component {
       {name: "App reservation fee", price: businessCut*this.state.price}, 
       {name: "Delivery fee", price: deliveryFee}
     ]
+    console.log(activeScreen);
 
     if(activeScreen == "initial") {
       // flex: 0.1 + 0.3 + 0.45 + 0.05 + 0.1
@@ -1505,46 +1530,41 @@ class ProductDetails extends Component {
       <SafeAreaView style={deliveryOptionModal}>
         <View style={[deliveryOptionHeader, {flex: 0.1}]}>
 
-          <FontAwesomeIcon
-            name='arrow-left'
-            size={28}
-            color={'black'}
-            onPress = { () => { 
-              this.setState({showPakPurchaseModal: false })
-            }}
+          <SmallBackArrow
+            onPress={this.togglePakPurchaseModal}
           />
           <Image style={styles.logo} source={Images.logo}/>
 
           <FontAwesomeIcon
             name='close'
             size={28}
-            color={'black'}
-            onPress = { () => { 
-              this.setState({showPakPurchaseModal: false })
-            }}
+            color={Colors.primary}
+            onPress={this.togglePakPurchaseModal}
           />
         </View>
 
         <View style={{flex: 0.3}}>
             {receipt.map((item) => (
               <View style={receiptItemContainer}>
-                <Text style={{...textStyles.generic}}>{item.name}</Text>
-                <Text style={{...textStyles.generic}}>Rs {item.price}</Text>
+                <Text style={{...Fonts.style.medium}}>{item.name}</Text>
+                <Text style={{...Fonts.style.medium}}>Rs {item.price}</Text>
               </View>
             ))}
 
 
         </View>
 
+        <View style={[receiptItemContainer, {flex: 0.05}]}>
+          <Text style={{...Fonts.style.medium}}>Total:</Text>
+          <Text style={{...Fonts.style.medium, fontWeight: "600"}}>Rs {receipt.reduce(reducer, 0).toFixed(2)}</Text>
+        </View>
+
         
         {this.renderAddAddressScrollBlock(0.45)}
         
-        <View style={[receiptItemContainer, {flex: 0.05}]}>
-          <Text style={{...textStyles.generic, ...Fonts.h4}}>Total:</Text>
-          <Text style={{...textStyles.generic, ...Fonts.h4}}>Rs {receipt.reduce(reducer, 0)}</Text>
-        </View>
+        
 
-        <NextButton text={"Proceed to Payment"} onPress={this.goToNextPage} disabled={!this.state.selectedAddress}/>
+        <NextButton text={"Proceed to Payment"} onPress={this.goToNextPage} disabled={this.state.selectedAddress ? false : true}/>
 
         
 
@@ -1567,10 +1587,7 @@ class ProductDetails extends Component {
           <View style={deliveryOptionHeader}>
 
             
-            <FontAwesomeIcon
-              name='arrow-left'
-              size={28}
-              color={'black'}
+            <SmallBackArrow
               onPress = { () => { 
                   this.goToPreviousPage()
                   // this.setState({showPurchaseModal: false })
@@ -1582,8 +1599,8 @@ class ProductDetails extends Component {
             <FontAwesomeIcon
               name='close'
               size={28}
-              color={'black'}
-              onPress={this.closePurchaseModal}
+              color={Colors.primary}
+              onPress={this.togglePakPurchaseModal}
               />
 
           </View>
@@ -1603,7 +1620,7 @@ class ProductDetails extends Component {
 
     }
 
-    else if(activeScreen = "choosePaymentMethod") {
+    else if(activeScreen == "choosePaymentMethod") {
       return (
         <Modal
         animationType={modalAnimationType}
@@ -1615,10 +1632,7 @@ class ProductDetails extends Component {
           <View style={deliveryOptionHeader}>
 
             
-            <FontAwesomeIcon
-              name='arrow-left'
-              size={28}
-              color={'black'}
+            <SmallBackArrow
               onPress = { () => { 
                   this.goToPreviousPage()
                   // this.setState({showPurchaseModal: false })
@@ -1630,8 +1644,8 @@ class ProductDetails extends Component {
             <FontAwesomeIcon
               name='close'
               size={28}
-              color={'black'}
-              onPress={this.closePurchaseModal}
+              color={Colors.primary}
+              onPress={this.togglePakPurchaseModal}
               />
 
           </View>
@@ -1663,6 +1677,7 @@ class ProductDetails extends Component {
 
           <NextButton 
           text={"Confirm Order"} 
+          // onPress={this.goToNextPage}
           onPress={() => {this.handleResponse(data = {title: "success"})}} 
           disabled={!this.state.cashOnDelivery}
           />
@@ -1686,18 +1701,16 @@ class ProductDetails extends Component {
 
             <View style={deliveryOptionHeader}>
 
-              <FontAwesomeIcon
-                name='arrow-left'
-                size={28}
-                color={logoGreen}
+              <SmallBackArrow
+                onPress={this.togglePakPurchaseModal}
               />
               <Image style={styles.logo} source={Images.logo}/>
               
               <FontAwesomeIcon
                 name='close'
                 size={28}
-                color={'black'}
-                onPress={this.closePurchaseModal}
+                color={Colors.primary}
+                onPress={this.togglePakPurchaseModal}
               />
             </View>
 
@@ -1710,7 +1723,7 @@ class ProductDetails extends Component {
                 <View style={{flex: 0.4, justifyContent: 'center', alignItems: 'center'}}>
                   <ProgressiveImage 
                   style= {styles.successProductImage} 
-                  thumbnailSource={ Images.glass }
+                  thumbnailSource={Images.glass}
                   source={{uri: this.state.productPictureURLs[0]}}
                   />
                 </View>
@@ -1724,7 +1737,7 @@ class ProductDetails extends Component {
                   <Text style={styles.successText}>
                   Your item will be delivered to:
                   {this.state.selectedAddress.addressOne + ", " + this.state.selectedAddress.addressTwo + ", " + this.state.selectedAddress.city + ", " + this.state.selectedAddress.postCode}.
-                  Please note that it may take up to 2 weeks for the item to arrive via postal delivery. In case your item doesn't arrive, send us an email at nottmystyle.help@gmail.com.
+                  Please note that it may take up to 2 weeks for the item to arrive via postal delivery. In case your item doesn't arrive, send us an email at f5.help@gmail.com.
                   </Text>
                     
                 </View>
@@ -1758,7 +1771,7 @@ class ProductDetails extends Component {
 
     return scrollY.interpolate({
         inputRange,
-        outputRange: ['#fff', almostWhite, 'black'],
+        outputRange: [Colors.secondary, almostWhite, Colors.primary],
         extrapolate: 'clamp',
         useNativeDriver: true
     });
@@ -1779,7 +1792,7 @@ class ProductDetails extends Component {
   render() {
     const headerLogoOpacity = this._getHeaderLogoOpacity();
     const headerColor = this._getHeaderColor();
-    // const arrowColor = this._getArrowColor();
+    const arrowColor = this._getArrowColor();
 
     const { params } = this.props.navigation.state, { data, productKeys } = params, 
     { 
@@ -1826,13 +1839,14 @@ class ProductDetails extends Component {
         //   marginTop: Platform.OS == 'ios' ? ifIphoneX(44, 0) : 0
         marginTop: 0,
       }]}>
-        <FontAwesomeIcon
+        <AnimatableIcon
         name='arrow-left'
-        size={30}
-        color={"#fff"}
-        onPress = { () => { 
+        size={28}
+        style={{color: arrowColor}}
+        onPress = {() => { 
             this.props.navigation.goBack();
-            } }
+        }}
+        
         />
 
         <Animated.Image style={{width: 45, height: 45, opacity: headerLogoOpacity}} source={Images.logo}/>
@@ -1875,7 +1889,7 @@ class ProductDetails extends Component {
         <View style={styles.nameAndPriceRow}>
           <Text style={new avenirNextText('black', 18, "500")}>{text.name.toUpperCase().replace(/ +/g, " ")}</Text>
           <Text style={[styles.original_price, {fontSize: String(text.price).length > 3 ? Fonts.style.small.fontSize : Fonts.style.h3.fontSize, color: mantisGreen}]} >
-            {this.state.currency + text.price}
+            {this.state.currency + " " + text.price}
           </Text>
           
         </View>
@@ -2472,7 +2486,7 @@ collectionInPersonButton: {
   // width: 230,
   height: 60,
   borderRadius: 15,
-  backgroundColor: '#99e265',
+  backgroundColor: Colors.secondary,
   justifyContent: 'center',
   alignItems: 'center'
 },
@@ -2509,7 +2523,7 @@ addDeliveryAddressButton: {
   // backgroundColor: 'green',
 },
 addressForm: {
-  paddingHorizontal: 10,
+  // paddingHorizontal: 10,
   // justifyContent: '',
   
 },

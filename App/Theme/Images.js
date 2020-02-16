@@ -8,6 +8,7 @@ const path = '../Assets/Images'
 // const 
 
 export default {
+  fullLogo: require(`${path}/fullLogo.png`),
   logo: require(`${path}/logo.png`),
   menuBars: require(`${path}/menu-bars.png`),
   // backArrow: require(`${path}/white-arrow-back.png`),
@@ -27,14 +28,44 @@ export default {
   ukFlag: require(`${path}/uk.png`),
   pkFlag: require(`${path}/pk.png`),
 
+  profileBackground: require(`${path}/ProfileBackground.png`),
+
   BackArrow: ({onPress}) => (
     <Icon 
       name='arrow-left'
       size={35}
-      color={'black'}
+      color={'#fff'}
       onPress={onPress}
     />
     
+  ),
+
+  SmallBackArrow: ({onPress, color = "#fff"}) => (
+    <Icon 
+      name='arrow-left'
+      size={28}
+      color={color}
+      onPress={onPress}
+    />
+    
+  ),
+
+  Info: ({onPress}) => (
+    <Icon
+      name='information-variant'
+      size={35}
+      color={'#fff'}
+      onPress={onPress} 
+    />
+  ),
+
+  Logout: ({onPress}) => (
+    <Icon
+      name='exit-run'
+      size={35}
+      color={'#fff'}
+      onPress={onPress} 
+    />
   ),
 
   PasswordsMatch: () => (
@@ -44,5 +75,14 @@ export default {
       color={Colors.secondary}
       
     />
-  )
+  ),
+
+  Facebook: ({onPress}) => (
+    <Icon 
+      name='facebook'
+      size={30}
+      color={Colors.facebook}
+      onPress={onPress}
+    />
+  ),
 }

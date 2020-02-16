@@ -9,7 +9,7 @@ import firebase from 'react-native-firebase';
 import MultipleAddButton from '../../components/MultipleAddButton.js';
 
 import { EulaTop, EulaBottom, TsAndCs, PrivacyPolicy, EulaLink } from '../../legal/Documents.js';
-import { lightGray, treeGreen, bobbyBlue, mantisGreen, bgBlack, flashOrange, logoGreen, woodBrown, darkGreen } from '../../colors.js';
+import { lightGray, treeGreen, bobbyBlue, mantisGreen, bgBlack, flashOrange, logoGreen, woodBrown, darkGreen, silver } from '../../colors.js';
 
 import {LoadingIndicator, CustomTextInput} from '../../localFunctions/visualFunctions';
 import { shadow } from '../../constructors/shadow.js';
@@ -17,10 +17,11 @@ import { shadow } from '../../constructors/shadow.js';
 import { avenirNextText } from '../../constructors/avenirNextText.js';
 import { center } from '../../constructors/center.js';
 
-import { Images, Colors } from '../../Theme';
+import { Images, Fonts, Colors, Helpers } from '../../Theme';
 import NavigationService from '../../Services/NavigationService.js';
+import AuthInput from '../../components/Input/AuthInput.js';
 
-let {BackArrow} = Images;
+let {BackArrow, Info} = Images;
 
 const {width, height} = Dimensions.get('window');
 const resizedWidth = 5000, resizedHeight = 5000;
@@ -28,11 +29,16 @@ const resizedWidth = 5000, resizedHeight = 5000;
 // TODO: store these in common file as thumbnail spec for image resizing
 const maxWidth = 320, maxHeight = 320, suppressionLevel = 0;
 // const inputHeightBoost = 4;
-const info = "In order to sign up, ensure that the values you input meet the following conditions:\n1. Take a profile picture of yourself. If you wish to keep your image a secret, just take a picture of your finger pressed against your camera lens to simulate a dark blank photo.\n2. Use a legitimate email address as other buyers and sellers need a way to contact you if the functionality in NottMyStyle is erroneous for some reason.\n3. Your Password's length must be greater than or equal to 6 characters. To add some security, consider using at least one upper case letter and one symbol like !.\n4. Please limit the length of your name to 40 characters.\n5. An Example answer to the 'city, country abbreviation' field is: 'Nottingham, UK' "
+const info = "In order to sign up, ensure that the values you input meet the following conditions:\n1. Take a profile picture of yourself. If you wish to keep your image a secret, just take a picture of your finger pressed against your camera lens to simulate a dark blank photo.\n2. Use a legitimate email address as other buyers and sellers need a way to contact you if the functionality in F5 is erroneous for some reason.\n3. Your Password's length must be greater than or equal to 6 characters. To add some security, consider using at least one upper case letter and one symbol like !.\n4. Please limit the length of your name to 40 characters.\n5. An Example answer to the 'city, country abbreviation' field is: 'Nottingham, UK' "
 const limeGreen = '#2e770f';
 
 // const locations = [{country: "UK", flag: "🇬🇧"},{country: "Pakistan", flag: "🇵🇰"},{country: "USA", flag: "🇺🇸"}]
-const locations = [{country: "UK", flag: "uk"},{country: "Pakistan", flag: "pk"},{country: "USA", flag: "usa"}];
+//TODO: *Variable
+const locations = [
+    // {country: "UK", flag: "uk"},
+    {country: "Pakistan", flag: "pk"},
+    // {country: "USA", flag: "usa"}
+];
 
 const Bullet = '\u2022';
 
@@ -109,7 +115,7 @@ class CreateProfile extends Component {
           firstName: params.googleUserBoolean || params.facebookUserBoolean ? params.user.user.name.split(" ")[0] : '',
           lastName: params.googleUserBoolean || params.facebookUserBoolean ? params.user.user.name.split(" ")[1] : '',
           city: '',    
-          country: params.currentLocation ? params.currentLocation : '',
+          country: params.currentLocation ? params.currentLocation : "Pakistan",
         //   size: 1,
           uri: undefined,
           insta: '',
@@ -259,8 +265,8 @@ class CreateProfile extends Component {
     //   console.log("Initiate Sign Up");
       firebase.auth().createUserWithEmailAndPassword(email, pass)
         .then(() => {
-            var unsubscribe = firebase.auth().onAuthStateChanged( ( user ) => {
-                unsubscribe();
+            firebase.auth().onAuthStateChanged( ( user ) => {
+                
                 if(user) {
                     // console.log("User Is: " + user)
                     const {uid} = user;
@@ -275,7 +281,7 @@ class CreateProfile extends Component {
             }
         )
         .catch(() => {
-            this.setState({ error: 'You already have a NottMyStyle account. Please use your credentials to Sign In', createProfileLoading: false, email: '', pass: '', pass2: '' });
+            this.setState({ error: 'You already have a F5 account. Please use your credentials to Sign In', createProfileLoading: false, email: '', pass: '', pass2: '' });
             alert(this.state.error)
         });
   }
@@ -560,28 +566,24 @@ class CreateProfile extends Component {
   }
 
   renderLocationSelect = () => (
-    <View style={[{flexDirection: 'row'}, styles.inputContainer]}>
-        <View style={{flex: 0.7, marginHorizontal: 5, borderBottomWidth: 1, borderColor: '#fff', marginRight: 10}}>
-            <TextInput 
-            style={styles.inputText}
+    <View style={[{flexDirection: 'row'}]}>
+        <View style={{flex: 0.7, marginHorizontal: 5, marginRight: 10}}>
+            <AuthInput             
             placeholder={"City"} 
-            placeholderTextColor={lightGray}
             value={this.state.city} 
             onChangeText={city => this.setState({ city })}
             maxLength={16}
-            clearButtonMode={'while-editing'}
-            underlineColorAndroid={"transparent"}
             returnKeyType={'default'}
             />
             
         </View>
 
-        <TouchableOpacity style={{flex: 0.3, justifyContent: 'center', borderBottomWidth: 1, borderColor: '#fff'}} onPress={this.toggleShowCountrySelect}>
+        <TouchableOpacity style={{flex: 0.3, ...Helpers.center}} onPress={this.toggleShowCountrySelect}>
             <Text 
             // style={styles.inputText}
-            style={[styles.inputText, {color: this.state.country ? '#fff' : lightGray }]}
+            style={[styles.inputText, {color: Colors.secondary }]}
             >
-            {this.state.country ? this.state.country : "Country"}
+            {this.state.country}
             </Text>
         </TouchableOpacity>
     
@@ -599,7 +601,7 @@ class CreateProfile extends Component {
                 <FontAwesomeIcon
                 name='close'
                 size={28}
-                color={'black'}
+                color={Colors.primary}
                 onPress={this.toggleShowCountrySelect}
                 />
             </View>
@@ -614,7 +616,7 @@ class CreateProfile extends Component {
                             <Image style={{width: 30, height: 30}} source={ location.flag == "usa" ? Images.usaFlag : location.flag == "uk" ? Images.ukFlag : Images.pkFlag }/>
                         </View>
                         <View style={styles.specificLocationContainer}>
-                            <Text style={new avenirNextText("black", 24, "600")}>{location.country}</Text>
+                            <Text style={{...Fonts.style.h3, color: Colors.secondary}}>{location.country}</Text>
                         </View>
                     </TouchableOpacity>
                 ))}
@@ -641,16 +643,22 @@ class CreateProfile extends Component {
   renderAuthInputFields = (passwordConditionMet) => (
       <View>
                             
-        <CustomTextInput maxLength={40} placeholder={"Email Address"} value={this.state.email} onChangeText={email => this.setState({ email })}/>
+        <AuthInput 
+        maxLength={40} 
+        placeholder={"Email Address"} 
+        value={this.state.email} 
+        onChangeText={email => this.setState({ email })}
+        keyboardType={'email'}            
+        />
 
         
 
-        <CustomTextInput 
+        <AuthInput 
         placeholder={"Password"} 
         value={this.state.pass} 
         onChangeText={pass => this.setState({ pass })}
         maxLength={16}
-        secureTextEntry={true}
+        secureTextEntry
         />
 
         
@@ -661,12 +669,12 @@ class CreateProfile extends Component {
             // borderWidth: this.state.pass && this.state.pass2 ? 0.5 : 0, borderColor: passwordConditionMet ? mantisGreen : flashOrange
             }}>
             <View style={{flex: passwordConditionMet ? 1 : 0.85}}>
-                <CustomTextInput 
+                <AuthInput 
                 placeholder={"Retype Password"} 
                 value={this.state.pass2} 
                 onChangeText={pass2 => this.setState({ pass2 })}
                 maxLength={16}
-                secureTextEntry={true}
+                secureTextEntry
                 />
             </View>
             {passwordConditionMet && 
@@ -674,7 +682,7 @@ class CreateProfile extends Component {
                 <Icon 
                     name="verified" 
                     size={30} 
-                    color={darkGreen}
+                    color={Colors.success}
                 />
             </View>
             }
@@ -717,25 +725,27 @@ class CreateProfile extends Component {
 
   renderEditableInputFields = (passwordConditionMet) => (
       <View>
-        <CustomTextInput maxLength={20} placeholder={"Username"} value={this.state.username} onChangeText={username => this.setState({ username })}/>
+        <AuthInput maxLength={20} placeholder={"Username"} value={this.state.username} onChangeText={username => this.setState({ username })}/>
 
         <View style={{flexDirection: 'row', }}>
-            <View style={{flex: 0.5, marginRight: 10}}>
-                <CustomTextInput 
+            
+                <AuthInput 
                 placeholder={"First Name"} 
                 value={this.state.firstName} 
                 onChangeText={firstName => this.setState({ firstName })}
                 maxLength={13}
+                isHalf
                 />
-            </View>
-            <View style={{flex: 0.5}}>
-                <CustomTextInput 
+            
+            
+                <AuthInput 
                 placeholder={"Last Name"} 
                 value={this.state.lastName} 
                 onChangeText={lastName => this.setState({ lastName })}
                 maxLength={13}
+                isHalf
                 />
-            </View>
+            
         </View>
 
         {!this.state.editProfileBoolean ?
@@ -745,17 +755,61 @@ class CreateProfile extends Component {
             null
         } 
 
-        <CustomTextInput 
+        {/* <CustomTextInput 
         placeholder={"Instagram Handle (w/o @)"} 
         value={this.state.insta} 
         onChangeText={insta => this.setState({ insta })}
         maxLength={16}
-        />
+        /> */}
 
         {this.renderLocationSelect()}
 
         
       </View>
+  )
+
+  renderTermsModal = () => (
+    //   {/* Modal to show Terms and Conditions */}
+      <Modal
+      animationType="fade"
+      transparent={false}
+      visible={this.state.termsModalVisible}
+      onRequestClose={() => {
+          Alert.alert('Modal has been closed.');
+      }}
+      >
+          <View style={styles.modal}>
+              <Text style={styles.modalHeader}>Terms & Conditions of Use</Text>
+              <ScrollView contentContainerStyle={styles.licenseContainer}>
+                  <Text>{TsAndCs}</Text>
+              </ScrollView>
+              <Text onPress={() => { this.setState({modalVisible: true, termsModalVisible: false}) }} style={styles.gotIt}>
+                  Got It!
+              </Text>
+          </View>
+      </Modal>
+  )
+
+  renderPrivacyModal = () => (
+    // {/* Modal to show Privacy Policy */}
+    <Modal
+    animationType="fade"
+    transparent={false}
+    visible={this.state.privacyModalVisible}
+    onRequestClose={() => {
+        Alert.alert('Modal has been closed.');
+    }}
+    >
+        <View style={styles.modal}>
+            <Text style={styles.modalHeader}>Privacy Policy of F5: Fashion Marketplace</Text>
+            <ScrollView contentContainerStyle={styles.licenseContainer}>
+                <Text>{PrivacyPolicy}</Text>
+            </ScrollView>
+            <Text onPress={() => { this.setState({modalVisible: true, privacyModalVisible: false}) }} style={styles.gotIt}>
+                Got It!
+            </Text>
+        </View>
+    </Modal>
   )
 
 
@@ -806,7 +860,7 @@ class CreateProfile extends Component {
 
     return (
         <SafeAreaView style={styles.mainContainer}>
-        <ImageBackground source={Images.createProfileBg} style={styles.mainContainer}>
+        
 
             <View style={styles.headerRow}>
                 <View style={{flex: 0.1, justifyContent: 'flex-start'}}>
@@ -815,33 +869,25 @@ class CreateProfile extends Component {
                     />
                 </View>
                 <View style={{flex: 0.80, justifyContent: 'flex-start', alignItems: 'center'}}>
-                    <Text style={{color: 'black', fontWeight: "700", fontSize: 26}}>
+                    <Text style={{color: Colors.primary, fontWeight: "400", fontSize: 26}}>
                         {this.state.editProfileBoolean ? "Edit Profile" : "Sign Up" }
                     </Text>
                 </View>
                 <View style={{flex: 0.1, justifyContent: 'flex-start', alignItems: 'center'}}>
-                    <Icon
-                    name='information-variant'
-                    size={35}
-                    color={'black'}
-                    onPress={() => this.setState({infoModalVisible: true}) } 
-
+                    <Info
+                        onPress={() => this.setState({infoModalVisible: true}) } 
                     />
+                    
                 </View>    
             </View>
 
-            <View style={styles.pictureRow}>
+            <ScrollView style={styles.inputsRow} contentContainerStyle={{...Helpers.center, paddingBottom: this.state.keyboardShown ? height/5 : 0}}>
                 <MultipleAddButton navToComponent={'CreateProfile'} pictureuris={pictureuris} />
-            </View>
-
-
-            <ScrollView style={styles.inputsRow} contentContainerStyle={[styles.container, {paddingBottom: this.state.keyboardShown ? height/5 : 0}]}>
-            
             {
                 Platform.OS == 'ios' ?
                     <KeyboardAvoidingView behavior={'padding'} keyboardVerticalOffset={80} enabled={this.state.keyboardShown ? true : false}>
                           
-
+                        
                         {this.renderEditableInputFields(passwordConditionMet)}
 
                     
@@ -849,16 +895,45 @@ class CreateProfile extends Component {
                 :
                     <View>
                         
-
+                        
                         {this.renderEditableInputFields(passwordConditionMet)}
 
                     </View>
             }
     
-            
+            {this.renderLocationSelectModal()}
     
-            {/* Modal to show legal docs and agree to them before one can create Profile */}
-            <Modal
+            
+
+            
+
+            
+            
+        </ScrollView>
+
+        
+        <TouchableOpacity style={styles.signUpButtonContainer} disabled={this.state.editProfileBoolean ? editProfileConditionMet ? true: false : conditionMet ? true: false} onPress={()=>this.setState({infoModalVisible: true})}>
+            <TouchableOpacity
+                disabled = { this.state.editProfileBoolean ? editProfileConditionMet ? false : true : conditionMet ? false: true}
+                style={styles.signUpButton}
+                onPress={
+                    () => {
+                        
+                        if(this.state.editProfileBoolean) {
+                            this.editProfile(this.state, pictureuris[0], mime = 'image/jpg', this.state.uid);
+                        }
+                        else {
+                            this.setModalVisible(true);
+                        }
+                    
+                    }} 
+            >
+                <Text style={{...Fonts.style.medium, fontWeight: "400", color: '#fff'}}>{this.state.editProfileBoolean ? "Edit Profile" : "Create Account" }</Text>
+            </TouchableOpacity>
+        </TouchableOpacity>
+
+        {/* Modal to show legal docs and agree to them before one can create Profile */}
+        <Modal
             animationType="slide"
             transparent={false}
             visible={this.state.modalVisible}
@@ -868,7 +943,7 @@ class CreateProfile extends Component {
             >
             <View style={styles.modal}>
                 
-                <Text style={styles.modalHeader}>End-User License Agreement for NottMyStyle</Text>
+                <Text style={styles.modalHeader}>End-User License Agreement for F5</Text>
                 <ScrollView contentContainerStyle={styles.licenseContainer}>
                     <Text>{EulaTop}</Text>
                     <Text style={{color: bobbyBlue}} onPress={() => Linking.openURL(EulaLink)}>{EulaLink}</Text>
@@ -892,7 +967,15 @@ class CreateProfile extends Component {
 
                     <TouchableOpacity
                         style={[styles.decisionButton, {backgroundColor: mantisGreen}]}
-                        onPress={() => {console.log('Sign Up Initiated') ; googleUser ? this.createProfileForGoogleOrFacebookUser(user, pictureuris == "nothing here" ? "" : pictureuris[0], 'google') : facebookUser ? this.createProfileForGoogleOrFacebookUser(user, pictureuris[0], 'facebook') : this.createProfile(this.state.email, this.state.pass, pictureuris[0]) ;}} 
+                        onPress={() => {
+                            googleUser ? 
+                            this.createProfileForGoogleOrFacebookUser(user, pictureuris == "nothing here" ? "" : pictureuris[0], 'google') 
+                            : 
+                                facebookUser ? 
+                                    this.createProfileForGoogleOrFacebookUser(user, pictureuris[0], 'facebook') 
+                                    : 
+                                    this.createProfile(this.state.email, this.state.pass, pictureuris[0]) ;
+                        }} 
                     >
                         <Text style={new avenirNextText('#fff', 16, "500")}>Accept</Text>
                     </TouchableOpacity>
@@ -900,46 +983,11 @@ class CreateProfile extends Component {
     
             </View>
             </Modal>
+            
+            {this.renderTermsModal()}
+            {this.renderPrivacyModal()}
     
-            {/* Modal to show Terms and Conditions */}
-            <Modal
-            animationType="fade"
-            transparent={false}
-            visible={this.state.termsModalVisible}
-            onRequestClose={() => {
-                Alert.alert('Modal has been closed.');
-            }}
-            >
-                <View style={styles.modal}>
-                    <Text style={styles.modalHeader}>Terms & Conditions of Use</Text>
-                    <ScrollView contentContainerStyle={styles.licenseContainer}>
-                        <Text>{TsAndCs}</Text>
-                    </ScrollView>
-                    <Text onPress={() => { this.setState({modalVisible: true, termsModalVisible: false}) }} style={styles.gotIt}>
-                        Got It!
-                    </Text>
-                </View>
-            </Modal>
-    
-            {/* Modal to show Privacy Policy */}
-            <Modal
-            animationType="fade"
-            transparent={false}
-            visible={this.state.privacyModalVisible}
-            onRequestClose={() => {
-                Alert.alert('Modal has been closed.');
-            }}
-            >
-                <View style={styles.modal}>
-                    <Text style={styles.modalHeader}>Privacy Policy of NottMyStyle</Text>
-                    <ScrollView contentContainerStyle={styles.licenseContainer}>
-                        <Text>{PrivacyPolicy}</Text>
-                    </ScrollView>
-                    <Text onPress={() => { this.setState({modalVisible: true, privacyModalVisible: false}) }} style={styles.gotIt}>
-                        Got It!
-                    </Text>
-                </View>
-            </Modal>
+            
     
             {/* Modal to explicate details required to sign up */}
             <Dialog
@@ -975,34 +1023,8 @@ class CreateProfile extends Component {
                 </View>
             </DialogContent>
             </Dialog>
-
-            
-
-            {this.renderLocationSelectModal()}
-            
-        </ScrollView>
-
         
-        <TouchableOpacity style={styles.signUpButtonContainer} disabled={this.state.editProfileBoolean ? editProfileConditionMet ? true: false : conditionMet ? true: false} onPress={()=>this.setState({infoModalVisible: true})}>
-            <TouchableOpacity
-                disabled = { this.state.editProfileBoolean ? editProfileConditionMet ? false : true : conditionMet ? false: true}
-                style={styles.signUpButton}
-                onPress={
-                    () => {
-                    if(this.state.editProfileBoolean) {
-                        this.editProfile(this.state, pictureuris[0], mime = 'image/jpg', this.state.uid);
-                    }
-                    else {
-                        this.setModalVisible(true);
-                    }
-                    
-                    }} 
-            >
-                <Text style={new avenirNextText("black", 20, "300")}>{this.state.editProfileBoolean ? "Edit Profile" : "Create Account" }</Text>
-            </TouchableOpacity>
-        </TouchableOpacity>
         
-        </ImageBackground>
         </SafeAreaView>
         )
       
@@ -1028,7 +1050,7 @@ const styles = StyleSheet.create({
 
     mainContainer: {
         flex: 1,
-        // backgroundColor: bgBlack,
+        backgroundColor: Colors.primary,
         // height: '100%',
         // justifyContent: 'space-around',
         // left: 0,
@@ -1044,14 +1066,14 @@ const styles = StyleSheet.create({
     // },
     container: {
         
-        flexGrow: 1, 
-        flexDirection: 'column',
-        justifyContent: 'center',
-        // paddingBottom: 30,
-        //alignItems: 'center'
-        // marginTop: 20,
-        paddingLeft: 10,
-        paddingRight: 10,
+        // flexGrow: 1, 
+        // flexDirection: 'column',
+        // justifyContent: 'center',
+        // // paddingBottom: 30,
+        // //alignItems: 'center'
+        // // marginTop: 20,
+        // paddingLeft: 10,
+        // paddingRight: 10,
 
         
 
@@ -1063,21 +1085,22 @@ const styles = StyleSheet.create({
         justifyContent: 'space-between',
         alignItems: 'center',
 
-        // backgroundColor: 'red',
-        margin: 5,
-        paddingVertical: 1, paddingHorizontal: 10,
+        backgroundColor: Colors.secondary,
+        // margin: 5,
+        paddingVertical: 5, paddingHorizontal: 10,
     },
 
     pictureRow: {
-        flex: 0.275,
-        justifyContent: 'space-between',
-        alignItems: 'center',
+        // flex: 0.35,
+        ...Helpers.center,
         margin: 5,
-        marginBottom: 10,
+        // marginBottom: 10,
     },
 
     inputsRow: {
-        flex: 0.4
+        flex: 0.7,
+        flexGrow: 1,
+        marginTop: 10,
     },
 
     inputContainer: {
@@ -1101,15 +1124,20 @@ const styles = StyleSheet.create({
     
     inputText: { fontFamily: 'Avenir Next', fontSize: 16, fontWeight: "500", color: "#fff"},
 
-    signUpButtonContainer: {flex: 0.225,justifyContent: 'center', alignItems: 'center', marginBottom: 4},
+    signUpButtonContainer: {flex: 0.2,justifyContent: 'center', alignItems: 'center', marginBottom: 4},
 
     signUpButton: {
-        width: 175,
-        height: 60,
-        borderRadius: 10,
-        backgroundColor: "#fff",
-        justifyContent: 'center', alignItems: 'center',
-        ...new shadow(4,1,darkGreen, 0,4)
+        width: "70%",
+        height: 40,
+        borderRadius: 20,
+        ...Helpers.center,
+        backgroundColor: Colors.secondary,
+        // width: 175,
+        // height: 60,
+        // borderRadius: 10,
+        // backgroundColor: "#fff",
+        // justifyContent: 'center', alignItems: 'center',
+        // ...new shadow(4,1,darkGreen, 0,4)
     },
 
     headerBar: {
@@ -1361,7 +1389,7 @@ const styles = StyleSheet.create({
 //           >
 //             <View style={styles.modal}>
               
-//               <Text style={styles.modalHeader}>End-User License Agreement for NottMyStyle</Text>
+//               <Text style={styles.modalHeader}>End-User License Agreement for F5</Text>
 //               <ScrollView contentContainerStyle={styles.licenseContainer}>
 //                   <Text style={{fontFamily: 'Avenir Next'}}>{EulaTop}</Text>
 //                   <Text style={{color: bobbyBlue}} onPress={() => Linking.openURL(EulaLink)}>{EulaLink}</Text>
@@ -1441,7 +1469,7 @@ const styles = StyleSheet.create({
 //             }}
 //           >
 //               <View style={styles.modal}>
-//                   <Text style={styles.modalHeader}>Privacy Policy of NottMyStyle</Text>
+//                   <Text style={styles.modalHeader}>Privacy Policy of F5</Text>
 //                   <ScrollView contentContainerStyle={styles.licenseContainer}>
 //                       <Text>{PrivacyPolicy}</Text>
 //                   </ScrollView>

@@ -1,12 +1,15 @@
 import React, { Component } from 'react';
-import { View, Modal, ImageBackground, Text, TextInput, Platform, StyleSheet, TouchableOpacity, SafeAreaView } from 'react-native';
+import { View, Modal, Image, ImageBackground, Text, TextInput, Platform, StyleSheet, TouchableOpacity, SafeAreaView } from 'react-native';
 import AsyncStorage from '@react-native-community/async-storage'
+
+import {GoogleSignin} from '@react-native-community/google-signin'
+import {LoginManager, AccessToken, GraphRequest, GraphRequestManager} from 'react-native-fbsdk';
 
 import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
 
 import firebase from 'react-native-firebase';
 
-
+import Container from '../../components/Container'
 import FontAwesomeIcon from 'react-native-vector-icons/FontAwesome';
 
 import {avenirNextText} from '../../constructors/avenirNextText'
@@ -16,8 +19,14 @@ import { LoadingIndicator, SignInTextInput, CustomTextInput } from '../../localF
 
 import {geocodeKey} from '../../credentials/keys';
 // import { isUserRegistered } from '../../Services/AuthService.js';
-import { Images, Helpers } from '../../Theme';
+import { Images, Helpers, Colors, Fonts, Metrics } from '../../Theme';
 import NavigationService from '../../Services/NavigationService';
+import { isUserRegistered } from '../../Services/AuthService';
+import AuthInput from '../../components/Input/AuthInput';
+
+
+const {platform,screenWidth} = Metrics;
+let {Facebook} = Images;
 
 const passwordResetText = "Enter your email and we will send you a link to reset your password"
 
@@ -41,8 +50,6 @@ class ViewWithChildAtPosition extends Component {
         }
 }
 
-
-
 //currently no barrier to logging in and signing up
 class SignIn extends Component {
 
@@ -55,6 +62,9 @@ class SignIn extends Component {
         showPasswordReset: false,
 
         //userLocation
+        currentLocation: false,
+
+        loading: false,
         currentLocation: false,
       };
     }
@@ -79,6 +89,130 @@ class SignIn extends Component {
 
         
         
+    }
+
+    componentDidMount() {
+        platform === "ios" ?
+            GoogleSignin.configure({
+                iosClientId: '791527199565-kfkgft1g8p2tamioshmqj8pa38r3sesh.apps.googleusercontent.com',
+            })
+            :
+            GoogleSignin.configure();
+    }
+
+    signInWithFacebook = () => {
+        this.setState({loading: true});
+
+        //Neat Trick: Define two functions (one for success, one for error), with a thenable based on the object returned from the Promise.
+        LoginManager.logOut();
+        LoginManager.logInWithPermissions(['email']).then(
+            (result) => {
+              
+              if (result.isCancelled) {
+                this.setState({loading: false});
+              } 
+              else {
+                
+                AccessToken.getCurrentAccessToken().then( (token) => {
+                    // console.log(data)
+                    const infoRequest = new GraphRequest(
+                        '/me?fields=name,picture,email',
+                        null,
+                        async (error, result) => {
+                            if(error) {
+                                alert('Error fetching data: ' + error.toString());
+                            }
+                            else {
+                                // console.log("GraphRequest was successful", result.picture.data.url);
+                                let {data} = await isUserRegistered(result.email);
+                                if(data.isRegistered) {
+                                    this.setState({loading: false}, () => {this.props.navigation.navigate('AppStack')});
+                                }
+                                else {
+                                    let socialInformation = {
+                                        accessToken: token.accessToken,
+                                        user: result
+                                    }
+                                    // alert('here')
+                                    this.setState({loading: false}, () => {this.attemptSignUp(socialInformation, false, true)})
+                                }
+                            }
+                        }
+                    );
+                    // Start the graph request.
+                    new GraphRequestManager().addRequest(infoRequest).start();
+
+
+                    // console.log("access token retrieved: " + data + data.accessToken);
+                    //Credential below throws an error if the associated email address already has an account within firebase auth
+
+                    // var credential = firebase.auth.FacebookAuthProvider.credential(data.accessToken);
+                    // console.log("the credential is:" + credential)
+                    // return firebase.auth().signInWithCredential(credential);
+
+                    
+
+                } )
+                
+                // .then( (currentUser) => {
+                //     console.log("Firebase User Is:" + currentUser);
+                //     this.successfulLoginCallback(currentUser, googleUserBoolean = false, facebookUserBoolean = true);
+                // })
+                // .catch( err => {
+                //     alert("The login failed because: " + err);
+                //     this.setState({loading: false});
+                // })
+
+
+                // .catch( (err) => alert('Login failed with error: ' + err))
+                // alert('Login was successful with permissions: '
+                //   + result.grantedPermissions.toString());
+              }
+            },
+            (error) => {
+              alert('Login failed because: ' + error);
+            }
+          );
+    }
+
+    signInWithGoogle = () => {
+        !this.state.loading ? this.setState({loading: true}) : null;
+        // console.log('trying to sign with google')
+        GoogleSignin.signIn()
+        .then((data) => {
+            //TODO: Since "google sign in with account" pop up does not show after person selects an account, 
+            //need a way to unlink google account and revive original chain fully so user may use another google account to sign up
+            //maybe look at other apps
+            console.log(data);
+            
+            let {idToken, accessToken, user} = data;
+            let socialInformation = {
+                idToken, accessToken, user
+            }
+            return socialInformation;
+            
+        })
+        .then(async (socialInformation) => {
+            // console.log(socialInformation.user.email)
+            let {data} = await isUserRegistered(socialInformation.user.email);
+            if(data.isRegistered) {
+                this.setState({loading: false}, () => {this.props.navigation.navigate('AppStack')});
+            }
+            else {
+                alert('here')
+                this.setState({loading: false}, () => {this.attemptSignUp(socialInformation, true, false)})
+            }
+            
+            
+            // console.log("STATUS:" + JSON.stringify(isRegistered));
+            // this.successfulLoginCallback(currentUser, googleUserBoolean = true, facebookUserBoolean = false);
+            // console.log('successfully signed in:', currentUser);
+            // console.log(JSON.stringify(currentUser.toJSON()))
+        })
+        .catch( (err) => {
+            platform === 'ios' ? console.log('user canceled google signin') : alert("Whoops! Here's what happened: " + err); 
+            this.setState({loading: false});
+        })
     }
 
 
@@ -239,12 +373,12 @@ class SignIn extends Component {
             transparent={false}
             visible={this.state.showPasswordReset}
             >
-                <View style={[styles.signInContainer, {backgroundColor: '#122021', padding: 0, marginHorizontal: 0, marginTop: Platform.OS == 'ios' ? 22 : 0}]}>
+                <View style={[styles.signInContainer, {flex: 1, backgroundColor: '#122021', padding: 0, marginHorizontal: 0, marginTop: Platform.OS == 'ios' ? 22 : 0}]}>
                     <View style={styles.headerBar}>
                         <FontAwesomeIcon
                         name='close'
                         size={28}
-                        color={'black'}
+                        color={'#fff'}
                         onPress={this.toggleShowPasswordReset}
                         />
                     </View>
@@ -290,187 +424,291 @@ class SignIn extends Component {
         )
     }
 
-    
-
+    renderHeader = () => (
+        <Container center style={{flex: 0.25, backgroundColor: Colors.secondary}}>
+            <Image source={Images.logo} style={styles.companyLogo}/>
+        </Container>
+    )
 
     render() {
-
-        const {loading} = this.state;
-        // console.log("Hello Sign In Page");
-        // AsyncStorage.getItem('previousEmail').then((d)=>console.log(d + 'getItem'))
-        
-        
         return (
-            <SafeAreaView style={{flex: 1}}>
-            <ImageBackground source={Images.createProfileBg} style={{flex: 1}}>
-
-
-
-            <View style={styles.signInContainer}>
-
+            <Container>
+                {this.renderHeader()}
                 
-                    <View style={styles.companyLogoContainer}>
+                <View style={styles.signInContainer}>
 
-                        
-
+                    <View style={styles.titleContainer}>
+                        <View style={styles.titleTextContainer}>
+                            <Text style={styles.titleText}>Login</Text>
+                        </View>
+                        <View style={styles.sliver}/>
                     </View>
-                    
+
                     <View style={styles.twoTextInputsContainer}>
-                        
-                        
-                        <View>
-                        <View style={styles.inputContainer}>
+                        <AuthInput
+                            placeholder={'Email'}
+                            value={this.state.email}
+                            onChangeText={email => this.setState({email})}
+                            keyboardType={'email'}
+                        />
+                        <AuthInput
+                            placeholder={'Password'}
+                            value={this.state.pass}
+                            onChangeText={pass => this.setState({pass})}
+                            secureTextEntry
+                        />
 
-                            <View style={styles.input}>
-                                <TextInput
-                                secureTextEntry={false}
-                                style={styles.inputText}
-                                placeholder={'Email Address'}
-                                placeholderTextColor={lightGray}
-                                onChangeText={email => this.setState({email})}
-                                value={this.state.email}
-                                multiline={false}
-                                autoCorrect={false}
-                                clearButtonMode={'while-editing'}
-                                underlineColorAndroid={"transparent"}
-                                keyboardType={'email-address'}
-                                returnKeyType={'next'}
-                                onSubmitEditing={()=>{this.passInput.focus()}}
-                                />         
-                            </View>
-                            
-                        </View>
+                    </View>
 
-                        <View style={styles.inputContainer}>
-                            <View style={styles.input}>
-                                <TextInput
-                                secureTextEntry={true}
-                                style={styles.inputText}
-                                placeholder={'Password'}
-                                placeholderTextColor={lightGray}
-                                onChangeText={pass => this.setState({ pass })}
-                                value={this.state.pass}
-                                multiline={false}
-                                
-                                autoCorrect={false}
-                                
-                                clearButtonMode={'while-editing'}
-                                underlineColorAndroid={"transparent"}
-                                returnKeyType={'done'}
-                                ref={ref => this.passInput = ref}
-                                
-                                
-                                />         
-                            </View>
-                        </View>
-                        </View>
-                        
-                        
-
-                        
-
-                        <View style={{ flexDirection: 'row', justifyContent: 'flex-start', marginVertical: 15, marginHorizontal: 15}}>
-                            <View style={{ justifyContent: 'center', alignItems: 'flex-start', marginHorizontal: 5}}>
-                                <TouchableOpacity onPress={this.toggleSaveUsernamePass} style={{height: 25, width: 25, borderWidth: 2, borderColor: '#fff', justifyContent: 'center', alignItems: 'center'}}>
-                                    {this.state.saveUsernamePass ?
-                                        <Icon
-                                        name="check"
-                                        size={22}
-                                        color={"#fff"} 
-                                        />
-                                    :
-                                        null
-                                    }
-                                </TouchableOpacity>
-                            </View>
-                            <View style={{ justifyContent: 'center', alignItems: 'center', marginHorizontal: 5}}>
-                                <Text onPress={this.toggleSaveUsernamePass} style={new avenirNextText("#fff", 14, "300")}>Remember Username & Password</Text>
-                            </View>
-                        </View>
-
-                        {loading ? 
-                            null
-                        :
-                            <TouchableOpacity 
-                            onPress={this.toggleShowPasswordReset}
-                            style={styles.forgotPasswordContainer}>
-                                <Text style={new avenirNextText('#fff', 14, "300")}>Forgot Password?</Text>
+                    <View style={styles.authActionsContainer}>
+                        <View style={styles.rememberMeContainer}>
+                            <TouchableOpacity onPress={this.toggleSaveUsernamePass} style={{height: 25, width: 25, borderWidth: 2, borderRadius: 10, borderColor: 'black', justifyContent: 'center', alignItems: 'center', marginRight: 5,}}>
+                                {this.state.saveUsernamePass ?
+                                    <Icon
+                                    name="check"
+                                    size={22}
+                                    color={"black"} 
+                                    />
+                                :
+                                    null
+                                }
                             </TouchableOpacity>
-                        }
-
+                            <Text onPress={this.toggleSaveUsernamePass} style={{...Fonts.style.small, color: Colors.secondary}}>Remember Me?</Text>
+                        </View>
+                        
+                        
                         
 
+                        <TouchableOpacity 
+                        onPress={this.toggleShowPasswordReset}
+                        style={styles.forgotPasswordContainer}>
+                            <Text style={{...Fonts.style.small, color: Colors.lightgrey}}>Forgot Password?</Text>
+                        </TouchableOpacity>
                     </View>
-                
-                {loading ? 
-                    <View style={styles.allAuthButtonsContainer}>
-                        <LoadingIndicator />
-                    </View>
-                :
-                    
-                        
-                <View style={[styles.allAuthButtonsContainer]}>
 
-                    <ViewWithChildAtPosition flex={1/7}  >
-                        
-                            {/* <Icon
-                                name="google" 
-                                size={30} 
-                                color={this.state.googleIconColor}
-                                onPress={() => this.signInWithGoogle()}
-                            /> */}
-                        
-                    </ViewWithChildAtPosition>
+                    {/* <View style={styles.forgotPasswordContainer}>
+                        <TouchableOpacity 
+                        onPress={this.toggleShowPasswordReset}
+                        style={styles.forgotPasswordContainer}>
+                            <Text style={{...Fonts.style.small, color: Colors.lightgrey}}>Forgot Password?</Text>
+                        </TouchableOpacity>
+                    </View> */}
 
-                    <View style={styles.twoAuthButtonsContainer}>
+                    <View style={styles.authButtonContainer}>
+                        {this.state.loading ? 
+                            <LoadingIndicator/>
+                        :
                         
-                            
                             <TouchableOpacity
                                 style={styles.authButton}
                                 onPress={() => {this.onSignInPress()} } 
                             >
-                                <Text>Sign In</Text>
+                                <Text style={{...Fonts.style.normal, color: Colors.primary}}>Sign In</Text>
                             </TouchableOpacity>
-                            
-
-                            
-                            <TouchableOpacity
-                                
-                                style={styles.authButton}
-                                onPress={() => {NavigationService.goBack()} } 
-                            >
-                                <Text>Back</Text>
-                            </TouchableOpacity>
-                            
                         
+                        }
                     </View>
 
-                    <ViewWithChildAtPosition flex={1/7} >
+                    <View style={styles.socialAuthButtonsContainer}>
+                        <View style={{...Helpers.center, paddingVertical: 5,}}>
+                            <Text style={{...Fonts.style.small, color: Colors.lightgrey}}>or login with</Text>
+                        </View>
+                        <View style={{...Helpers.center, flexDirection: 'row', padding: 0, }}>
+                            <Facebook onPress={() => this.signInWithFacebook()}/>
+                        </View>
+                    </View>
 
-                        {/* <Icon
-                            name="facebook-box" 
-                            size={33} 
-                            color={this.state.fbIconColor}
-                            onPress={() => this.signInWithFacebook()}
-                        /> */}
-                            
-                    </ViewWithChildAtPosition>
+                    <View style={styles.footerContainer}>
+                        <Text onPress={()=>{this.attemptSignUp(user = false, googleUserBoolean = false, facebookUserBoolean = false)}} style={{...Fonts.style.small, color: Colors.lightgrey}}>Don't have an account? <Text style={{...Fonts.style.small, color: Colors.secondary}}>SIGN UP</Text></Text>
+                    </View>
 
                 </View>
-                }
+
+                {this.renderPasswordResetModal()}
+
+            </Container>
+        )
+    }
+
+    
+    // renderA() {
+
+    //     const {loading} = this.state;
+    //     // console.log("Hello Sign In Page");
+    //     // AsyncStorage.getItem('previousEmail').then((d)=>console.log(d + 'getItem'))
+        
+        
+    //     return (
+    //         <SafeAreaView style={{flex: 1}}>
+    //         <ImageBackground source={Images.createProfileBg} style={{flex: 1}}>
+
+
+
+    //         <View style={styles.signInContainer}>
+
+                
+    //                 <View style={styles.companyLogoContainer}>
+
+                        
+
+    //                 </View>
+                    
+    //                 <View style={styles.twoTextInputsContainer}>
+                        
+                        
+    //                     <View>
+    //                     <View style={styles.inputContainer}>
+
+    //                         <View style={styles.input}>
+    //                             <TextInput
+    //                             secureTextEntry={false}
+    //                             style={styles.inputText}
+    //                             placeholder={'Email Address'}
+    //                             placeholderTextColor={lightGray}
+    //                             onChangeText={email => this.setState({email})}
+    //                             value={this.state.email}
+    //                             multiline={false}
+    //                             autoCorrect={false}
+    //                             clearButtonMode={'while-editing'}
+    //                             underlineColorAndroid={"transparent"}
+    //                             keyboardType={'email-address'}
+    //                             returnKeyType={'next'}
+    //                             onSubmitEditing={()=>{this.passInput.focus()}}
+    //                             />         
+    //                         </View>
+                            
+    //                     </View>
+
+    //                     <View style={styles.inputContainer}>
+    //                         <View style={styles.input}>
+    //                             <TextInput
+    //                             secureTextEntry={true}
+    //                             style={styles.inputText}
+    //                             placeholder={'Password'}
+    //                             placeholderTextColor={lightGray}
+    //                             onChangeText={pass => this.setState({ pass })}
+    //                             value={this.state.pass}
+    //                             multiline={false}
+                                
+    //                             autoCorrect={false}
+                                
+    //                             clearButtonMode={'while-editing'}
+    //                             underlineColorAndroid={"transparent"}
+    //                             returnKeyType={'done'}
+    //                             ref={ref => this.passInput = ref}
+                                
+                                
+    //                             />         
+    //                         </View>
+    //                     </View>
+    //                     </View>
+                        
+                        
+
+                        
+
+    //                     <View style={{ flexDirection: 'row', justifyContent: 'flex-start', marginVertical: 15, marginHorizontal: 15}}>
+    //                         <View style={{ justifyContent: 'center', alignItems: 'flex-start', marginHorizontal: 5}}>
+    //                             <TouchableOpacity onPress={this.toggleSaveUsernamePass} style={{height: 25, width: 25, borderWidth: 2, borderColor: '#fff', justifyContent: 'center', alignItems: 'center'}}>
+    //                                 {this.state.saveUsernamePass ?
+    //                                     <Icon
+    //                                     name="check"
+    //                                     size={22}
+    //                                     color={"#fff"} 
+    //                                     />
+    //                                 :
+    //                                     null
+    //                                 }
+    //                             </TouchableOpacity>
+    //                         </View>
+    //                         <View style={{ justifyContent: 'center', alignItems: 'center', marginHorizontal: 5}}>
+    //                             <Text onPress={this.toggleSaveUsernamePass} style={new avenirNextText("#fff", 14, "300")}>Remember Username & Password</Text>
+    //                         </View>
+    //                     </View>
+
+    //                     {loading ? 
+    //                         null
+    //                     :
+    //                         <TouchableOpacity 
+    //                         onPress={this.toggleShowPasswordReset}
+    //                         style={styles.forgotPasswordContainer}>
+    //                             <Text style={new avenirNextText('#fff', 14, "300")}>Forgot Password?</Text>
+    //                         </TouchableOpacity>
+    //                     }
+
+                        
+
+    //                 </View>
+                
+    //             {loading ? 
+    //                 <View style={styles.allAuthButtonsContainer}>
+    //                     <LoadingIndicator />
+    //                 </View>
+    //             :
+                    
+                        
+    //             <View style={[styles.allAuthButtonsContainer]}>
+
+    //                 <ViewWithChildAtPosition flex={1/7}  >
+                        
+    //                         {/* <Icon
+    //                             name="google" 
+    //                             size={30} 
+    //                             color={this.state.googleIconColor}
+    //                             onPress={() => this.signInWithGoogle()}
+    //                         /> */}
+                        
+    //                 </ViewWithChildAtPosition>
+
+    //                 <View style={styles.twoAuthButtonsContainer}>
+                        
+                            
+    //                         <TouchableOpacity
+    //                             style={styles.authButton}
+    //                             onPress={() => {this.onSignInPress()} } 
+    //                         >
+    //                             <Text>Sign In</Text>
+    //                         </TouchableOpacity>
+                            
+
+                            
+    //                         <TouchableOpacity
+                                
+    //                             style={styles.authButton}
+    //                             onPress={() => {NavigationService.goBack()} } 
+    //                         >
+    //                             <Text>Back</Text>
+    //                         </TouchableOpacity>
+                            
+                        
+    //                 </View>
+
+    //                 <ViewWithChildAtPosition flex={1/7} >
+
+    //                     {/* <Icon
+    //                         name="facebook-box" 
+    //                         size={33} 
+    //                         color={this.state.fbIconColor}
+    //                         onPress={() => this.signInWithFacebook()}
+    //                     /> */}
+                            
+    //                 </ViewWithChildAtPosition>
+
+    //             </View>
+    //             }
 
                     
-            {this.renderPasswordResetModal()}
-            </View>
-            </ImageBackground>
-            </SafeAreaView>
-                    )
+    //         {this.renderPasswordResetModal()}
+    //         </View>
+    //         </ImageBackground>
+    //         </SafeAreaView>
+    //                 )
 
 
                     
 
             
-        }
+    //     }
 
 }
 
@@ -495,8 +733,9 @@ const styles = StyleSheet.create({
 
   //SIGN IN PAGE
     signInContainer: {
-      flex: 1,
-    //   marginHorizontal: 15,
+      flex: 0.75,
+      marginTop: 20,
+      marginHorizontal: 15,
     //   marginTop: 20,
       //marginBottom: 5,
     //   padding: 15,
@@ -506,6 +745,86 @@ const styles = StyleSheet.create({
     //   backgroundColor: '#122021',
       //#fff
     },
+
+        titleContainer: {
+            flex: 0.15,
+            marginBottom: 10,
+        },
+
+            titleTextContainer: {
+                flex: 0.95,
+                justifyContent: 'center',
+                paddingVertical: 5,
+            },
+                titleText: {
+                    ...Fonts.style.h4,
+
+                },
+
+            sliver: {
+                flex: 0.05,
+                backgroundColor: Colors.grey,
+                width: 30,
+                // height: 1,
+
+            },
+
+        twoTextInputsContainer: {
+            flex: 0.3,
+            // justifyContent: 'flex-start',
+            // backgroundColor: 'blue',
+            // alignItems: 'center',
+            // paddingHorizontal: 10
+            // backgroundColor: 'red'
+            },
+
+        authActionsContainer: { 
+            flex: 0.1, flexDirection: 'row',
+            // backgroundColor: 'red'
+        },
+            rememberMeContainer: { 
+                flex: 0.4, flexDirection: 'row', 
+                justifyContent: 'space-evenly', alignItems: 'center',
+            },
+        
+            forgotPasswordContainer: {
+                flex: 0.6,
+                flexDirection: 'row',
+                justifyContent: 'flex-end',
+                alignItems: 'center',
+                
+                
+            },
+
+        authButtonContainer: {
+            flex: 0.2,
+            ...Helpers.center,
+            marginVertical: 5,
+        },
+
+            authButton: {
+                width: "70%",
+                height: 40,
+                borderRadius: 20,
+                ...Helpers.center,
+                backgroundColor: Colors.secondary,
+            },
+
+        socialAuthButtonsContainer: {
+            flex: 0.15,
+            // backgroundColor: 'red'
+        },
+
+        footerContainer: {
+            flex: 0.1,
+            ...Helpers.center,
+        },
+
+
+        
+
+    
+
     companyLogoContainer: {
       flex: 0.25,
       justifyContent: 'flex-end',
@@ -516,28 +835,21 @@ const styles = StyleSheet.create({
     },
     companyLogo: {
       //resizeMode: 'container',
-      borderColor:'#207011',
+    //   borderColor:'#207011',
       // alignItems:'center',
       // justifyContent:'center',
-      width:90,
-      height:100,
+      width:130,
+      height:130,
     //   backgroundColor:'#122021',
-      borderRadius:45,
-      borderWidth: 1,
+    //   borderRadius:45,
+    //   borderWidth: 1,
       //marginLeft: (width/4)-10,
       // paddingLeft: 25,
       // paddingRight: 25
   
   },
 
-  twoTextInputsContainer: {
-    flex: 0.4,
-    // justifyContent: 'flex-start',
-    // backgroundColor: 'red',
-    // alignItems: 'center',
-    // paddingHorizontal: 10
-    // backgroundColor: 'red'
-  },
+  
 
   inputContainer: {
       marginVertical: 7,
@@ -578,23 +890,16 @@ const styles = StyleSheet.create({
     // alignItems: 'center'
   },
 
-    authButton: {
-        backgroundColor: darkGreen,
-        borderWidth: 0,
-        borderRadius: 5,
-        marginVertical: 10,
-        padding: 15,
-        ...Helpers.center,
-    },
+    // authButton: {
+    //     backgroundColor: darkGreen,
+    //     borderWidth: 0,
+    //     borderRadius: 5,
+    //     marginVertical: 10,
+    //     padding: 15,
+    //     ...Helpers.center,
+    // },
 
-  forgotPasswordContainer: {
-    //   flex: 0.05,
-      flexDirection: 'row',
-      justifyContent: 'center',
-    //   marginLeft: 15,
-      alignItems: 'center',
-      
-  },
+  
 
   headerBar: {
       flex: 0.07,

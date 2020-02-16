@@ -23,7 +23,10 @@ import { textStyles } from '../../StyleSheets/textStyles.js';
 const settings = [ 
   {
     header: 'Personalization',
-    settings: ['Edit Personal Details', 'Edit Profile Background Color']
+    settings: [
+      'Edit Personal Details', 
+      // 'Edit Profile Background Color'
+    ]
   }, 
   {
     header: 'Support',
@@ -109,7 +112,7 @@ class Settings extends Component {
     return (
       <Animatable.View
         duration={400}
-        style={[section.settings.length == 2 ? styles.shortContentCard : styles.contentCard, isActive ? styles.active : styles.inactive]}
+        style={[section.settings.length == 1 ? styles.shortContentCard : styles.contentCard, isActive ? styles.active : styles.inactive]}
         transition="backgroundColor"
       >
         {section.settings.map( (setting, index) => (
@@ -307,7 +310,7 @@ const styles = StyleSheet.create({
     },
 
     shortContentCard: {
-      height: 95,
+      height: 55,
       justifyContent: 'space-evenly',
       paddingVertical: 5,
       paddingLeft: 10,

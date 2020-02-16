@@ -7,6 +7,7 @@ import FontAwesomeIcon from 'react-native-vector-icons/FontAwesome';
 
 import {flashOrange, almostWhite, treeGreen, highlightGreen} from '../colors.js';
 import { BasicLoadingIndicator } from '../localFunctions/visualFunctions.js';
+import { Colors } from '../Theme/index.js';
 
 class MultiplePictureCamera extends Component {
   
@@ -92,8 +93,8 @@ class MultiplePictureCamera extends Component {
           <View style={styles.confirmButton}>
             <TouchableHighlight disabled={this.state.confirmDisabled} onPress={ () => { this.confirmSelection(navToComponent) }}>
               <View style={styles.confirmButtonColumn}>
-                <Icon size={40} color={!this.state.confirmDisabled ? treeGreen : almostWhite} type='material-community' name='thumb-up' />
-                <Text style={[styles.confirmText, !this.state.confirmDisabled ? {color: treeGreen} : {color: flashOrange}]}>Done?</Text>
+                <Icon size={40} color={!this.state.confirmDisabled ? Colors.success : Colors.primary} type='material-community' name='thumb-up' />
+                <Text style={[styles.confirmText, !this.state.confirmDisabled ? {color: Colors.success} : {color: Colors.primary}]}>Done?</Text>
               </View>
               
             </TouchableHighlight>  

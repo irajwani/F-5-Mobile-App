@@ -157,7 +157,7 @@ export default StyleSheet.create({
 
   thinBottomBorder: {
     borderColor: Colors.grey,
-    borderBottomWidth: 1.3
+    borderBottomWidth: 0.4
   },
 
   //ICONS

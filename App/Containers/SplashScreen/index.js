@@ -11,7 +11,7 @@ import firebase from 'react-native-firebase';
 import { connect } from 'react-redux'
 
 import styles from './styles'
-import { Metrics } from '../../Theme';
+import { Metrics, Images } from '../../Theme';
 
 let companyName = "F5"
 const splashScreenDuration = 200;
@@ -19,7 +19,7 @@ const splashScreenDuration = 200;
 class SplashScreen extends React.Component {
 
     componentDidMount = async () => {
-      Metrics.platform == 'android' ? this.createChannel() : null;
+      Metrics.platform == 'android' && this.createChannel();
       this.checkPermission();
       this.createNotificationListeners();
       setTimeout(() => {
@@ -114,7 +114,7 @@ class SplashScreen extends React.Component {
     render() {
         return (
           <SafeAreaView style={styles.container}>
-            <Text style={styles.companyName}>{companyName}</Text>
+            <Image source={Images.fullLogo} style={styles.companyLogo}/>
           </SafeAreaView>
         )
     }

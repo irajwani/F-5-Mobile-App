@@ -1,5 +1,5 @@
 import React, { Component } from 'react'
-import { Keyboard, Platform, Dimensions, Animated, Modal, Text, TextInput, StyleSheet, ImageBackground, View, Image, TouchableHighlight, TouchableOpacity, TouchableWithoutFeedback, SafeAreaView, FlatList } from 'react-native'
+import { Keyboard, Platform, Dimensions, Animated, Modal as RNModal, Text, TextInput, StyleSheet, ImageBackground, View, Image, TouchableHighlight, TouchableOpacity, TouchableWithoutFeedback, SafeAreaView, FlatList } from 'react-native'
 
 
 import Svg, { Path } from 'react-native-svg';
@@ -9,17 +9,20 @@ import FontAwesomeIcon from 'react-native-vector-icons/FontAwesome';
 
 import firebase from 'react-native-firebase';
 
-import Dialog, { DialogTitle, DialogButton, SlideAnimation } from 'react-native-popup-dialog';
+import Modal, { ModalContent, SlideAnimation, ModalTitle, ModalFooter, ModalButton } from 'react-native-modals';
+// import Dialog, { DialogTitle, DialogButton, SlideAnimation } from 'react-native-popup-dialog';
 
-
+import {TabHeader} from "./HeaderBar"
 import { highlightGreen,lightGreen, silver } from '../colors.js';
 import { LoadingIndicator } from '../localFunctions/visualFunctions.js';
+import Container from './Container';
 import ProgressiveImage from './ProgressiveImage';
 import { stampShadow } from '../StyleSheets/shadowStyles';
 import {  Images, Fonts, Colors, Helpers } from '../Theme';
 import randomUsernameString from '../fashion/randomUsernameString.js';
 const {width} = Dimensions.get('window');
 
+let {Logout} = Images;
 const iconSize = 35;
 
 const randomUsername = new randomUsernameString();
@@ -130,35 +133,43 @@ export default class Profile extends Component {
     }
 
     renderExitModal = (logOut) => (
-        <Dialog
-          visible={this.state.isMenuActive}
-          dialogAnimation={new SlideAnimation({
-          slideFrom: 'top',
-          })}
-          dialogTitle={<DialogTitle title="Do you want to log out?" titleTextStyle={{...Fonts.style.medium}} />}
-          actions={[ 
-          <DialogButton
-          text="NO"
-          style={{backgroundColor: Colors.lightgrey}}
-          textStyle={{color: 'black'}}
-          onPress={this.toggleMenu}
-          />,
-          <DialogButton
-          text="YES"
-          textStyle={{color: 'black'}}
-          onPress={() => {
-            this.toggleMenu();
-            logOut();
-            }}
-          />,
-          ]}
-          onTouchOutside={this.toggleMenu}
-          >
-        </Dialog>
+        
+      <Modal
+        modalTitle={<ModalTitle title="Do you want to log out?" titleTextStyle={{...Fonts.style.medium, color: Colors.secondary}}/>}
+        visible={this.state.isMenuActive}
+        onTouchOutside={this.toggleMenu}
+        modalAnimation={new SlideAnimation({
+          slideFrom: 'bottom',
+        })}
+        swipeDirection={['up', 'down', 'left', 'right']} // can be string or an array
+        swipeThreshold={200} // default 100
+        onSwipeOut={this.toggleMenu}
+        footer={
+          <ModalFooter>
+            <ModalButton
+              text="No"
+              style={{backgroundColor: Colors.lightgrey}}
+              textStyle={{color: 'black'}}
+              onPress={this.toggleMenu}
+            />
+            <ModalButton
+              text="Yes"
+              textStyle={{color: 'black'}}
+              onPress={() => {
+                this.toggleMenu();
+                logOut();
+              }}
+            />
+          </ModalFooter>
+        }
+      >
+        
+      </Modal>
+        
     )
 
     renderOptionModal = (usersBlocked, otherUserUid, blockUser, unblockUser) => (
-      <Modal
+      <RNModal
           animationType="slide"
           transparent={false}
           visible={this.state.isOptionModalActive}
@@ -170,7 +181,7 @@ export default class Profile extends Component {
             <Text style={styles.modalHeader}>Block or Report This User</Text>
             <Text style={styles.modalText}>If you block this user, then they cannot initiate a chat with you regarding one of your products.</Text>
             <Text style={styles.modalText}>This will delete all chats you have with this individual, so if you decide to unblock this user later, they will have to initiate new chats with you.</Text>
-            <Text style={styles.modalText}>If you believe this user has breached the Terms and Conditions for usage of NottMyStyle (for example, through proliferation of malicious content, or improper language), then please explain this to the NottMyStyle Team through email by selecting Report User.</Text>
+            <Text style={styles.modalText}>If you believe this user has breached the Terms and Conditions for usage of F5 (for example, through proliferation of malicious content, or improper language), then please explain this to the F5 Team through email by selecting Report User.</Text>
             <View style={styles.documentOpenerContainer}>
                 {usersBlocked.includes(otherUserUid) ?
                     <Text style={styles.blockUser} 
@@ -200,11 +211,11 @@ export default class Profile extends Component {
               <Text style={styles.hideModal}>Back</Text>
             </TouchableHighlight>
           </View>
-       </Modal>
+       </RNModal>
     )
 
     renderReportModal = (report, handleReportTextChange, sendReport, otherUserUid) => (
-       <Modal
+       <RNModal
           animationType="slide"
           transparent={false}
           visible={this.state.isReportModalActive}
@@ -245,7 +256,7 @@ export default class Profile extends Component {
                 </TouchableHighlight>
             </View>
           </DismissKeyboardView>
-        </Modal> 
+        </RNModal> 
     )
 
     toggleDrawer = () => {
@@ -358,6 +369,7 @@ export default class Profile extends Component {
     )
 
     render() {
+        
         if(this.props.currentUser) {
           var {
             // PP
@@ -422,9 +434,9 @@ export default class Profile extends Component {
        
       
           return (
-            <SafeAreaView style={styles.mainContainer}>
+            <Container>
             
-      
+              {/* <TabHeader text={"Profile"}/> */}
               <ImageBackground source={Images.profileBackground} style={styles.linearGradient}>
                 
                 {/* <View style={[styles.oval, {backgroundColor: this.props.navigation.getParam('backgroundColor', this.state.backgroundColor)}]}/> */}
@@ -438,27 +450,28 @@ export default class Profile extends Component {
                     <Icon 
                       name="settings" 
                       size={iconSize} 
-                      color={'black'}
+                      color={'#fff'}
                       onPress={navToSettings}
                     />
                     :
                     <Icon 
                       name="arrow-left"   
                       size={iconSize - 5} 
-                      color={'black'}
+                      color={'#fff'}
                       onPress={navBack}
                     />    
                     }
       
                     {currentUser ?
-                    <TouchableOpacity onPress={this.toggleMenu}>
-                      <Image style={{width: iconSize, height: iconSize}} source={Images.logout}/>
-                    </TouchableOpacity>
+                    <Logout
+                      onPress={this.toggleMenu}
+                    />
+                    
                     :
                     <Icon 
                       name="account-alert"      
                       size={iconSize} 
-                      color={'#020002'}
+                      color={'#fff'}
                       onPress={this.toggleReportModal}
                     />
                     }
@@ -520,7 +533,7 @@ export default class Profile extends Component {
                   (this.props.showAddListing && item.item == 'add listing') ?
                     <TouchableOpacity key={index} style={[styles.productImage, styles.addListing]} onPress={this.props.navToAddListing}>
                       <Icon 
-                        name={'plus'} size={70} color={'black'}
+                        name={'plus'} size={30} color={'black'}
                       />
                     </TouchableOpacity>
                       :
@@ -547,7 +560,7 @@ export default class Profile extends Component {
             {currentUser ? null : this.renderOptionModal(usersBlocked, otherUserUid, blockUser, unblockUser)}
             {currentUser ? null : this.renderReportModal(report, handleReportTextChange, sendReport, otherUserUid)}
 
-            </SafeAreaView>
+            </Container>
             
       
       
@@ -582,7 +595,7 @@ const styles = StyleSheet.create({
     
   
     linearGradient: {
-      flex: 0.65,
+      flex: 0.75,
       // ...lowerShadow,
       // overflow: 'hidden',
       // position: "relative",
@@ -675,10 +688,10 @@ const styles = StyleSheet.create({
         // width: profilePicSize,
         // height: profilePicSize,
         // borderRadius: profilePicSize/2,
-        width: 160,
-        height: 160,
+        width: 120,
+        height: 120,
         alignSelf: 'center',
-        borderRadius: 80,
+        borderRadius: 60,
         borderColor: '#fff',
         borderWidth: 0,
         ...stampShadow,
@@ -691,7 +704,7 @@ const styles = StyleSheet.create({
       },
   
     productsContainer: {
-      flex: 0.3,    
+      flex: 0.2,    
       // backgroundColor: "#fff",
       // flexDirection: 'row',
       
@@ -742,14 +755,17 @@ const styles = StyleSheet.create({
       },
 
       productScrollContentContainer: {
+        marginHorizontal: 15,
         paddingVertical: 15,
         justifyContent: 'center',
         // alignItems: 'center'
       },
 
         productImage: {
-          width: width/3 - 15,
-          height: width/3 - 15,
+          width: 50,
+          height: 50,
+          // width: width/4 - 15,
+          // height: width/4 -15,
           marginHorizontal: 5,
         },
 
